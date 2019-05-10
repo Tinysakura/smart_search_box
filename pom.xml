@@ -11,7 +11,7 @@
 	<groupId>com.tinysakura</groupId>
 	<artifactId>smart-search-box</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>smart-search-box</name>
+	<name>smart_search_box</name>
 	<description>Demo project for Spring Boot</description>
 
 	<properties>
@@ -43,6 +43,12 @@
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<version>1.18.6</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.tinysakura</groupId>
+			<artifactId>smart_elk_client</artifactId>
+			<version>1.0-RELEASE</version>
 		</dependency>
 	</dependencies>
 
