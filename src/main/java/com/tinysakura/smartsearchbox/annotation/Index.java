@@ -33,8 +33,22 @@ public @interface Index {
     public String id() default "";
 
     /**
-     * 指定文档表达式，只有符合表达式要求的文档最终才会被索引
+     * 指定文档索引表达式，只有符合表达式要求的文档最终才会被索引
      * @return
      */
-    public String expression() default "";
+    public String indexExpression() default "";
+
+    /**
+     * 指定搜索提示字段
+     * @return
+     */
+    public String prompt() default "";
+
+    /**
+     * 指定文档搜索提示表达式，用于计算推荐分
+     * @return
+     */
+    public String promptExpression() default "";
+
+
 }
