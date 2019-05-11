@@ -23,7 +23,10 @@ public class SearchPromptProp {
     private Integer number;
 
     @Value("smart_search_box.search_prompt.zset.capacity")
-    private Integer zsetCapacity;
+    private Long zSetCapacity;
+
+    @Value("smart_search_box.search_prompt.zset.cache_capacity")
+    private Long zSetCacheCapacity;
 
     @Bean
     public SearchPromptProp searchPromptProp() {
@@ -31,7 +34,8 @@ public class SearchPromptProp {
         searchPromptProp.setBehaviorRatio(this.behaviorRatio);
         searchPromptProp.setDocumentRatio(this.documentRatio);
         searchPromptProp.setNumber(this.number);
-        searchPromptProp.setZsetCapacity(this.zsetCapacity);
+        searchPromptProp.setZSetCapacity(this.zSetCapacity);
+        searchPromptProp.setZSetCacheCapacity(this.zSetCacheCapacity);
 
         return searchPromptProp;
     }

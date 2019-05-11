@@ -1,7 +1,8 @@
 package com.tinysakura.smartsearchbox.core;
 
+import com.tinysakura.smartsearchbox.service.AnalyzerService;
 import com.tinysakura.smartsearchbox.service.ELKClientService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.tinysakura.smartsearchbox.service.RedisClientService;
 
 /**
  * 框架启动类，随着spring ioc容器的创建而启动
@@ -18,11 +19,34 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 
 public class Launch {
+    /**
+     * 分词能力
+     */
+    private AnalyzerService analyzerService;
 
-    @Autowired
+    /**
+     * 索引能力
+     */
     private ELKClientService elkClientService;
+
+    /**
+     * redis交互能力
+     */
+    private RedisClientService redisClientService;
 
     public Launch() {
 
+    }
+
+    public void setAnalyzer(AnalyzerService analyzerService) {
+        this.analyzerService = analyzerService;
+    }
+
+    public void setElkClient(ELKClientService elkClientService) {
+        this.elkClientService = elkClientService;
+    }
+
+    public void setRedisClient(RedisClientService redisClientService) {
+        this.redisClientService = redisClientService;
     }
 }
