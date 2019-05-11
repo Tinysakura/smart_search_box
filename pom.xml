@@ -49,6 +49,12 @@
 			<artifactId>smart_elk_client</artifactId>
 			<version>1.0-RELEASE</version>
 		</dependency>
+
+		<dependency>
+			<groupId>redis.clients</groupId>
+			<artifactId>jedis</artifactId>
+			<version>2.9.0</version>
+		</dependency>
 	</dependencies>
 
 	<build>

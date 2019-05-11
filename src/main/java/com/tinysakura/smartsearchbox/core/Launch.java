@@ -1,5 +1,8 @@
 package com.tinysakura.smartsearchbox.core;
 
+import com.tinysakura.smartsearchbox.service.ELKClientService;
+import org.springframework.beans.factory.annotation.Autowired;
+
 /**
  * 框架启动类，随着spring ioc容器的创建而启动
  * 主要任务：
@@ -15,4 +18,11 @@ package com.tinysakura.smartsearchbox.core;
  */
 
 public class Launch {
+
+    @Autowired
+    private ELKClientService elkClientService;
+
+    public Launch() {
+
+    }
 }
