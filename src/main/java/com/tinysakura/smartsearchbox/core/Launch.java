@@ -1,8 +1,14 @@
 package com.tinysakura.smartsearchbox.core;
 
+import com.tinysakura.smartsearchbox.common.command.DocumentAddCommand;
+import com.tinysakura.smartsearchbox.common.command.IndexCreateCommand;
 import com.tinysakura.smartsearchbox.service.AnalyzerService;
 import com.tinysakura.smartsearchbox.service.ELKClientService;
 import com.tinysakura.smartsearchbox.service.RedisClientService;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * 框架启动类，随着spring ioc容器的创建而启动
@@ -20,22 +26,64 @@ import com.tinysakura.smartsearchbox.service.RedisClientService;
 
 public class Launch {
     /**
-     * 分词能力
+     * data
+     */
+    private Integer indexInitThreadPoolSize;
+
+    private Integer documentIndexThreadPoolSize;
+
+    /**
+     * component
+     */
+
+    /**
+     * 分词能力组件
      */
     private AnalyzerService analyzerService;
 
     /**
-     * 索引能力
+     * 索引能力组件
      */
     private ELKClientService elkClientService;
 
     /**
-     * redis交互能力
+     * redis交互能力组件
      */
     private RedisClientService redisClientService;
 
-    public Launch() {
+    /**
+     * 用来存放索引文档指令的阻塞队列
+     */
+    private LinkedBlockingQueue<DocumentAddCommand> documentAddBlockingQueue;
 
+    /**
+     * 用来存放创建索引指令的阻塞队列，索引初始化完成后销毁
+     */
+    private LinkedBlockingQueue<IndexCreateCommand> indexCreateBlockingQueue;
+
+    /**
+     * 初始化索引线程池，索引初始化完成后销毁
+     */
+    private ExecutorService indexInitThreadPool;
+
+    /**
+     * 执行索引文档任务的线程池
+     */
+    private ExecutorService documentIndexThreadPool;
+
+    public Launch() {
+        this.documentAddBlockingQueue = new LinkedBlockingQueue<>();
+        this.indexCreateBlockingQueue = new LinkedBlockingQueue<>();
+        this.indexInitThreadPool = Executors.newFixedThreadPool(this.indexInitThreadPoolSize);
+        this.documentIndexThreadPool = Executors.newFixedThreadPool(this.documentIndexThreadPoolSize);
+    }
+
+    public void setIndexInitThreadPoolSize(Integer indexInitThreadPoolSize) {
+        this.indexInitThreadPoolSize = indexInitThreadPoolSize;
+    }
+
+    public void setDocumentIndexThreadPoolSize(Integer documentIndexThreadPoolSize) {
+        this.documentIndexThreadPoolSize = documentIndexThreadPoolSize;
     }
 
     public void setAnalyzer(AnalyzerService analyzerService) {

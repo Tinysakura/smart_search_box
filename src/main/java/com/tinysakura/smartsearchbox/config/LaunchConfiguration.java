@@ -5,7 +5,7 @@ import com.tinysakura.smartsearchbox.adapter.JedisClientAdapter;
 import com.tinysakura.smartsearchbox.adapter.SmartELKClientAdapter;
 import com.tinysakura.smartsearchbox.core.Launch;
 import com.tinysakura.smartsearchbox.prop.EndPointProp;
-import com.tinysakura.smartsearchbox.prop.IndexInitProp;
+import com.tinysakura.smartsearchbox.prop.IndexProp;
 import com.tinysakura.smartsearchbox.prop.SearchPromptProp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -29,7 +29,7 @@ public class LaunchConfiguration {
     private EndPointProp endPointProp;
 
     @Autowired
-    private IndexInitProp indexInitProp;
+    private IndexProp indexInitProp;
 
     @Autowired
     private SearchPromptProp searchPromptProp;
