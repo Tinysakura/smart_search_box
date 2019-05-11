@@ -3,7 +3,7 @@ package com.tinysakura.smartsearchbox.core;
 import com.tinysakura.smartsearchbox.common.command.DocumentAddCommand;
 import com.tinysakura.smartsearchbox.common.command.IndexCreateCommand;
 import com.tinysakura.smartsearchbox.service.AnalyzerService;
-import com.tinysakura.smartsearchbox.service.ELKClientService;
+import com.tinysakura.smartsearchbox.service.ElkClientService;
 import com.tinysakura.smartsearchbox.service.RedisClientService;
 
 import java.util.concurrent.ExecutorService;
@@ -44,7 +44,7 @@ public class Launch {
     /**
      * 索引能力组件
      */
-    private ELKClientService elkClientService;
+    private ElkClientService elkClientService;
 
     /**
      * redis交互能力组件
@@ -90,7 +90,7 @@ public class Launch {
         this.analyzerService = analyzerService;
     }
 
-    public void setElkClient(ELKClientService elkClientService) {
+    public void setElkClient(ElkClientService elkClientService) {
         this.elkClientService = elkClientService;
     }
 

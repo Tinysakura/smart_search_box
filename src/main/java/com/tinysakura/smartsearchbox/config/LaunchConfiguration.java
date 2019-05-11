@@ -2,7 +2,7 @@ package com.tinysakura.smartsearchbox.config;
 
 import com.tinysakura.smartsearchbox.adapter.IkAnalyzerAdapter;
 import com.tinysakura.smartsearchbox.adapter.JedisClientAdapter;
-import com.tinysakura.smartsearchbox.adapter.SmartELKClientAdapter;
+import com.tinysakura.smartsearchbox.adapter.SmartElkClientAdapter;
 import com.tinysakura.smartsearchbox.core.Launch;
 import com.tinysakura.smartsearchbox.prop.EndPointProp;
 import com.tinysakura.smartsearchbox.prop.IndexProp;
@@ -40,11 +40,11 @@ public class LaunchConfiguration {
 
         IkAnalyzerAdapter ikAnalyzerAdapter = new IkAnalyzerAdapter(false);
         JedisClientAdapter jedisClientAdapter = new JedisClientAdapter(jedisPool, searchPromptProp.getZSetCapacity(), searchPromptProp.getZSetCacheCapacity());
-        SmartELKClientAdapter smartELKClientAdapter = new SmartELKClientAdapter();
+        SmartElkClientAdapter smartElkClientAdapter = new SmartElkClientAdapter();
 
         launch.setAnalyzer(ikAnalyzerAdapter);
         launch.setRedisClient(jedisClientAdapter);
-        launch.setElkClient(smartELKClientAdapter);
+        launch.setElkClient(smartElkClientAdapter);
 
         return launch;
     }

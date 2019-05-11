@@ -11,7 +11,7 @@ import java.util.List;
  * @Date: 2019/5/10
  */
 
-public interface ELKClientService {
+public interface ElkClientService {
     /**
      * 索引创建相关接口
      */
@@ -48,6 +48,8 @@ public interface ELKClientService {
      */
     List<Object> termQuery(String index, String documentType, String field, Object value, Double boost, Integer pageIndex, Integer pageSize, Class clazz);
 
+    List<Object> termQuery(String index, String documentType, String field, Object value, Double boost, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags);
+
     /**
      * 前缀查询
      * @param index
@@ -60,6 +62,8 @@ public interface ELKClientService {
      * @param clazz
      */
     List<Object> prefixQuery(String index, String documentType, String field, String prefix, Double boost, Integer pageIndex, Integer pageSize, Class clazz);
+
+    List<Object> prefixQuery(String index, String documentType, String field, String prefix, Double boost, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags);
 
     /**
      * 模糊查询
@@ -76,6 +80,8 @@ public interface ELKClientService {
      */
     List<Object> fuzzyQuery(String index, String documentType, String field, String likeText, Double minSimilarity, Double boost, Integer pageIndex, Integer pageSize, Class clazz);
 
+    List<Object> fuzzyQuery(String index, String documentType, String field, String likeText, Double minSimilarity, Double boost, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags);
+
     /**
      * 文档标识符查询
      * @param index
@@ -87,4 +93,6 @@ public interface ELKClientService {
      * @return
      */
     Object idsQuery(String index, String documentType, String id, Integer pageIndex, Integer pageSize, Class clazz);
+
+    Object idsQuery(String index, String documentType, String id, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags);
 }
