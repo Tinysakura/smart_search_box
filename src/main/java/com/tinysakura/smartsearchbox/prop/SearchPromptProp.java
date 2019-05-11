@@ -28,6 +28,18 @@ public class SearchPromptProp {
     @Value("smart_search_box.search_prompt.zset.cache_capacity")
     private Long zSetCacheCapacity;
 
+    @Value("smart_search_box.search_prompt.document_zset.key")
+    private String documentZSetKey;
+
+    @Value("smart_search_box.search_prompt.behavior_zset.key")
+    private String behaviorZSetKey;
+
+    @Value("smart_search_box.search_prompt.highlight.pre_tags")
+    private String preTags;
+
+    @Value("smart_search_box.search_prompt.highlight.post_tags")
+    private String postTags;
+
     @Bean
     public SearchPromptProp searchPromptProp() {
         SearchPromptProp searchPromptProp = new SearchPromptProp();
@@ -36,6 +48,10 @@ public class SearchPromptProp {
         searchPromptProp.setNumber(this.number);
         searchPromptProp.setZSetCapacity(this.zSetCapacity);
         searchPromptProp.setZSetCacheCapacity(this.zSetCacheCapacity);
+        searchPromptProp.setDocumentZSetKey(this.documentZSetKey);
+        searchPromptProp.setBehaviorZSetKey(this.behaviorZSetKey);
+        searchPromptProp.setPreTags(this.preTags);
+        searchPromptProp.setPostTags(this.postTags);
 
         return searchPromptProp;
     }

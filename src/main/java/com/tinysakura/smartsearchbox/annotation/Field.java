@@ -44,4 +44,16 @@ public @interface Field {
      * @return
      */
     public String dateFormat() default "YYYY-MM-dd HH:mm:ss";
+
+    /**
+     * 指定高亮片段的前置标签
+     * @return
+     */
+    public String preTags() default "";
+
+    /**
+     * 指定高亮片段的后置标签
+     * @return
+     */
+    public String postTags() default "";
 }
