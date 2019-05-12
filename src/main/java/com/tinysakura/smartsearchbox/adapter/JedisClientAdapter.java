@@ -27,6 +27,19 @@ public class JedisClientAdapter implements RedisClientService {
     }
 
     @Override
+    public Boolean exists(String key) {
+        Jedis jedis = null;
+
+        try {
+            jedis = jedisPool.getResource();
+            return jedis.exists(key);
+        } finally {
+            //返还到连接池
+            jedis.close();
+        }
+    }
+
+    @Override
     public void zSet(String key, Map<String, Double> map) {
         Jedis jedis = null;
 

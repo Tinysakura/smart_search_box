@@ -29,7 +29,7 @@ public class LaunchConfiguration {
     private EndPointProp endPointProp;
 
     @Autowired
-    private IndexProp indexInitProp;
+    private IndexProp indexProp;
 
     @Autowired
     private SearchPromptProp searchPromptProp;
@@ -45,6 +45,9 @@ public class LaunchConfiguration {
         launch.setAnalyzer(ikAnalyzerAdapter);
         launch.setRedisClient(jedisClientAdapter);
         launch.setElkClient(smartElkClientAdapter);
+        launch.setEndPointProp(endPointProp);
+        launch.setIndexProp(indexProp);
+        launch.setSearchPromptProp(searchPromptProp);
 
         return launch;
     }

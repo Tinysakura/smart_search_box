@@ -10,6 +10,12 @@ import java.util.Set;
  */
 
 public interface RedisClientService {
+
+    /**
+     * 基础操作相关接口
+     */
+    Boolean exists(String key);
+
     /**
      * sorted set操作相关接口
      */
