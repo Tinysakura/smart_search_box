@@ -13,13 +13,13 @@ import org.springframework.context.annotation.Configuration;
 @Data
 @Configuration
 public class SearchPromptProp {
-    @Value("smart_search_box.search.prompt.behavior.ratio")
+    @Value("smart_search_box.search_prompt.behavior.ratio")
     private Double behaviorRatio;
 
-    @Value("smart_search_box.search.prompt.document.ratio")
+    @Value("smart_search_box.search_prompt.document.ratio")
     private Double documentRatio;
 
-    @Value("smart_search_box.search.prompt.number")
+    @Value("smart_search_box.search_prompt.number")
     private Integer number;
 
     @Value("smart_search_box.search_prompt.zset.capacity")

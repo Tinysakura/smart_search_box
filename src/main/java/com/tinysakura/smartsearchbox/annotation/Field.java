@@ -27,6 +27,8 @@ public @interface Field {
      */
     public String fieldName() default "";
 
+    public String type() default "text";
+
     /**
      * 指定字段权值
      * @return
@@ -43,17 +45,5 @@ public @interface Field {
      * 指定索引时使用的日期格式
      * @return
      */
-    public String dateFormat() default "YYYY-MM-dd HH:mm:ss";
-
-    /**
-     * 指定高亮片段的前置标签
-     * @return
-     */
-    public String preTags() default "";
-
-    /**
-     * 指定高亮片段的后置标签
-     * @return
-     */
-    public String postTags() default "";
+    public String dateFormat() default "";
 }

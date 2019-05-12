@@ -13,7 +13,5 @@ public class DocumentAddCommand {
 
     String documentType;
 
-    String documentId;
-
     Object document;
 }

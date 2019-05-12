@@ -15,6 +15,12 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Index {
     /**
+     * dao层bean在ioc容器中的bean name
+     * @return
+     */
+    public String beanName() default "";
+
+    /**
      * 指定在哪个索引上索引文档
      * @return
      */
@@ -25,12 +31,6 @@ public @interface Index {
      * @return
      */
     public String documentType();
-
-    /**
-     * 指定使用文档中的哪个字段作为文档唯一标识符
-     * @return
-     */
-    public String id() default "";
 
     /**
      * 指定文档索引表达式，只有符合表达式要求的文档最终才会被索引

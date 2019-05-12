@@ -45,6 +45,12 @@ public @interface Document {
     public boolean dynamic() default true;
 
     /**
+     * 指定使用文档中的哪个字段作为文档唯一标识符
+     * @return
+     */
+    public String id() default "";
+
+    /**
      * 是否使用_all字段
      * @return
      */
