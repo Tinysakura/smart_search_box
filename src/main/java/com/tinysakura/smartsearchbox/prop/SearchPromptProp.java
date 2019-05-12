@@ -34,6 +34,12 @@ public class SearchPromptProp {
     @Value("smart_search_box.search_prompt.behavior_zset.key")
     private String behaviorZSetKey;
 
+    @Value("smart_search_box.search_prompt.document_zset.clean_up_interval")
+    private Long documentZSetCleanUpInterval;
+
+    @Value("smart_search_box.search_prompt.behavior_zset.clean_up_interval")
+    private Long behaviorZSetCleanUpInterval;
+
     @Value("smart_search_box.search_prompt.highlight.pre_tags")
     private String preTags;
 
@@ -50,6 +56,8 @@ public class SearchPromptProp {
         searchPromptProp.setZSetCacheCapacity(this.zSetCacheCapacity);
         searchPromptProp.setDocumentZSetKey(this.documentZSetKey);
         searchPromptProp.setBehaviorZSetKey(this.behaviorZSetKey);
+        searchPromptProp.setDocumentZSetCleanUpInterval(this.documentZSetCleanUpInterval);
+        searchPromptProp.setBehaviorZSetCleanUpInterval(this.behaviorZSetCleanUpInterval);
         searchPromptProp.setPreTags(this.preTags);
         searchPromptProp.setPostTags(this.postTags);
 

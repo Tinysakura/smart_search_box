@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * 框架启动类，随着spring ioc容器的创建而启动
@@ -100,11 +101,21 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
      */
     private ExecutorService documentIndexThreadPool;
 
+    /**
+     * 执行zset清理定时任务的线程池
+     */
+    private ScheduledExecutorService zsetCleanUpThreasPool;
+
     public Launch() {
         this.documentAddBlockingQueue = new LinkedBlockingQueue<>();
         this.indexCreateBlockingQueue = new LinkedBlockingQueue<>();
         this.indexInitThreadPool = Executors.newFixedThreadPool(this.indexProp.getIndexInitThreadPoolSize());
         this.documentIndexThreadPool = Executors.newFixedThreadPool(this.indexProp.getDocumentIndexThreadPoolSize());
+        this.zsetCleanUpThreasPool = Executors.newScheduledThreadPool(2);
+
+        initDocumentZSet();
+        initUserBehaviorZSet();
+        documentAnnotationProcessor();
     }
 
     public void setAnalyzer(AnalyzerService analyzerService) {
@@ -314,6 +325,8 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
      */
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        indexAnnotationProcessor();
+
         return null;
     }
 }
