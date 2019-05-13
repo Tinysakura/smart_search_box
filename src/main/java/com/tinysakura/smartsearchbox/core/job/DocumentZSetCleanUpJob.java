@@ -20,13 +20,13 @@ public class DocumentZSetCleanUpJob implements Runnable {
 
     private RedisClientService redisClientService;
 
-    private Integer zSetCapacity;
+    private Long zSetCapacity;
 
-    private Integer zSetCacheCapacity;
+    private Long zSetCacheCapacity;
 
     private String analyzer;
 
-    public DocumentZSetCleanUpJob(ElkClientService elkClientService, RedisClientService redisClientService, String setKey, Integer zSetCapacity, Integer zSetCacheCapacity, String analyzer, String[] field) {
+    public DocumentZSetCleanUpJob(ElkClientService elkClientService, RedisClientService redisClientService, String setKey, Long zSetCapacity, Long zSetCacheCapacity, String analyzer, String[] field) {
         this.elkClientService = elkClientService;
         this.redisClientService = redisClientService;
         this.zSetCapacity = zSetCapacity;
@@ -54,7 +54,7 @@ public class DocumentZSetCleanUpJob implements Runnable {
             for (String zSetKey : zSetKeys) {
                 redisClientService.del(zSetKey);
 
-                QueryResponse queryResponse = elkClientService.multiMatchQuery(index, null, fields, zSetKey, analyzer, 0, zSetCapacity + zSetCacheCapacity);
+                QueryResponse queryResponse = elkClientService.multiMatchQuery(index, null, fields, zSetKey, analyzer, 0, new Long(zSetCapacity + zSetCacheCapacity).intValue());
                 Hit[] hits = queryResponse.getHits().getHits();
 
                 for (Hit hit : hits) {

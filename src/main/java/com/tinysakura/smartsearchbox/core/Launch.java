@@ -6,6 +6,9 @@ import com.tinysakura.core.index.Index;
 import com.tinysakura.smartsearchbox.annotation.Document;
 import com.tinysakura.smartsearchbox.common.command.DocumentAddCommand;
 import com.tinysakura.smartsearchbox.common.command.IndexCreateCommand;
+import com.tinysakura.smartsearchbox.core.job.DocumentIndexJob;
+import com.tinysakura.smartsearchbox.core.job.IndexInitJob;
+import com.tinysakura.smartsearchbox.core.job.UserBehaviorZSetCleanUpJob;
 import com.tinysakura.smartsearchbox.core.proxy.DocumentIndexInvocationHandler;
 import com.tinysakura.smartsearchbox.prop.EndPointProp;
 import com.tinysakura.smartsearchbox.prop.IndexProp;
@@ -27,10 +30,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.*;
 
 /**
  * 框架启动类，随着spring ioc容器的创建而启动
@@ -93,7 +93,7 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
     /**
      * 用来存放创建索引指令的阻塞队列，索引初始化完成后销毁
      */
-    private LinkedBlockingQueue<IndexCreateCommand> indexCreateBlockingQueue;
+    private LinkedBlockingQueue<IndexCreateCommand> indexInitBlockingQueue;
 
     /**
      * 初始化索引线程池，索引初始化完成后销毁
@@ -112,12 +112,16 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
 
     public Launch() {
         this.documentAddBlockingQueue = new LinkedBlockingQueue<>();
-        this.indexCreateBlockingQueue = new LinkedBlockingQueue<>();
+        this.indexInitBlockingQueue = new LinkedBlockingQueue<>();
         this.indexInitThreadPool = Executors.newFixedThreadPool(this.indexProp.getIndexInitThreadPoolSize());
         this.documentIndexThreadPool = Executors.newFixedThreadPool(this.indexProp.getDocumentIndexThreadPoolSize());
         this.zsetCleanUpThreasPool = Executors.newScheduledThreadPool(1);
 
         documentAnnotationProcessor();
+        initSetKey();
+        startIndexInitJob();
+        startDocumentIndexJob();
+        startBehaviorZSetCleanUpTimingTask();
     }
 
     public void initSetKey() {
@@ -136,28 +140,44 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
         }
     }
 
-    public void setAnalyzer(AnalyzerService analyzerService) {
-        this.analyzerService = analyzerService;
+    /**
+     * 启动索引初始化任务
+     */
+    private void startIndexInitJob() {
+        while (!indexInitBlockingQueue.isEmpty()) {
+            IndexCreateCommand indexCreateCommand = indexInitBlockingQueue.poll();
+            IndexInitJob indexInitJob = new IndexInitJob(elkClientService, redisClientService, indexCreateCommand);
+            indexInitThreadPool.submit(indexInitJob);
+        }
+
+        // help gc
+        indexInitBlockingQueue = null;
+        // 通知线程池在任务执行完之后异步关闭
+        indexInitThreadPool.shutdown();
     }
 
-    public void setElkClient(ElkClientService elkClientService) {
-        this.elkClientService = elkClientService;
+    /**
+     * 启动文档索引任务
+     */
+    private void startDocumentIndexJob() {
+        new Thread(() -> {
+            while (true) {
+                try {
+                    DocumentAddCommand documentAddCommand = documentAddBlockingQueue.take();
+                    documentIndexThreadPool.submit(new DocumentIndexJob(elkClientService, redisClientService, analyzerService, documentAddCommand));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
-    public void setRedisClient(RedisClientService redisClientService) {
-        this.redisClientService = redisClientService;
-    }
-
-    public void setEndPointProp(EndPointProp endPointProp) {
-        this.endPointProp = endPointProp;
-    }
-
-    public void setIndexProp(IndexProp indexProp) {
-        this.indexProp = indexProp;
-    }
-
-    public void setSearchPromptProp(SearchPromptProp searchPromptProp) {
-        this.searchPromptProp = searchPromptProp;
+    /**
+     * 启动清理用户行为对应的zset的定时任务
+     */
+    private void startBehaviorZSetCleanUpTimingTask() {
+        UserBehaviorZSetCleanUpJob job = new UserBehaviorZSetCleanUpJob(redisClientService, searchPromptProp.getZSetCapacity(), searchPromptProp.getZSetCacheCapacity());
+        zsetCleanUpThreasPool.scheduleAtFixedRate(job, 1000 * 60 * 60 * 20, searchPromptProp.getBehaviorZSetCleanUpInterval(), TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -209,7 +229,7 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
             indexCreateCommand.setDocumentType(documentAnnotation.documentType());
 
             try {
-                indexCreateBlockingQueue.put(indexCreateCommand);
+                indexInitBlockingQueue.put(indexCreateCommand);
             } catch (InterruptedException e) {
                 log.info("索引创建命令存入失败", e);
                 e.printStackTrace();
@@ -280,7 +300,7 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
                     if (indexProp.isAsync()) {
                         invocationHandler = new DocumentIndexInvocationHandler(target, indexProp.isAsync(), documentAddBlockingQueue, redisClientService);
                     } else {
-                        invocationHandler = new DocumentIndexInvocationHandler(target, indexProp.isAsync(), elkClientService, redisClientService);
+                        invocationHandler = new DocumentIndexInvocationHandler(target, indexProp.isAsync(), elkClientService, redisClientService, analyzerService);
                     }
 
                     Object proxyInstance = Proxy.newProxyInstance(target.getClass().getClassLoader(), target.getClass().getInterfaces(), invocationHandler);
@@ -330,5 +350,29 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
         indexAnnotationProcessor();
 
         return null;
+    }
+
+    public void setAnalyzer(AnalyzerService analyzerService) {
+        this.analyzerService = analyzerService;
+    }
+
+    public void setElkClient(ElkClientService elkClientService) {
+        this.elkClientService = elkClientService;
+    }
+
+    public void setRedisClient(RedisClientService redisClientService) {
+        this.redisClientService = redisClientService;
+    }
+
+    public void setEndPointProp(EndPointProp endPointProp) {
+        this.endPointProp = endPointProp;
+    }
+
+    public void setIndexProp(IndexProp indexProp) {
+        this.indexProp = indexProp;
+    }
+
+    public void setSearchPromptProp(SearchPromptProp searchPromptProp) {
+        this.searchPromptProp = searchPromptProp;
     }
 }

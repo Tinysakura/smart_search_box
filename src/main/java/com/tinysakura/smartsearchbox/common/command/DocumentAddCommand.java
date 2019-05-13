@@ -14,4 +14,6 @@ public class DocumentAddCommand {
     String documentType;
 
     Object document;
+
+    String[] searchPromptFields;
 }

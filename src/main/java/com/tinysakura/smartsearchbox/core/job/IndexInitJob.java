@@ -4,9 +4,7 @@ import com.tinysakura.smartsearchbox.common.command.IndexCreateCommand;
 import com.tinysakura.smartsearchbox.core.Launch;
 import com.tinysakura.smartsearchbox.service.ElkClientService;
 import com.tinysakura.smartsearchbox.service.RedisClientService;
-
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import com.tinysakura.smartsearchbox.util.StringUtil;
 
 /**
  * 负责初始化索引的job
@@ -20,67 +18,49 @@ public class IndexInitJob implements Runnable {
 
     private RedisClientService redisClientService;
 
-    private String documentSetKeySuffix;
-
-    private String behaviorSetKeySuffix;
-
-    private LinkedBlockingQueue<IndexCreateCommand> indexCreateBlockingQueue;
-
-    private Long waitTime;
-
-    private static final String setKeyFormat = "%s_%s";
+    private IndexCreateCommand indexCreateCommand;
 
     /**
      *
      * @param elkClientService elk客户端
-     * @param indexCreateBlockingQueue 存放索引初始化命令的阻塞队列
-     * @param waitTime 从阻塞队列中取命令允许阻塞的最大时间
+     * @param indexCreateCommand 索引初始化命令
      */
-    public IndexInitJob(ElkClientService elkClientService, RedisClientService redisClientService, LinkedBlockingQueue<IndexCreateCommand> indexCreateBlockingQueue, String documentSetKeySuffix, String behaviorSetKeySuffix, Long waitTime) {
+    public IndexInitJob(ElkClientService elkClientService, RedisClientService redisClientService, IndexCreateCommand indexCreateCommand) {
         this.elkClientService = elkClientService;
         this.redisClientService = redisClientService;
-        this.indexCreateBlockingQueue = indexCreateBlockingQueue;
-        this.documentSetKeySuffix = documentSetKeySuffix;
-        this.behaviorSetKeySuffix = behaviorSetKeySuffix;
-        this.waitTime = waitTime;
+        this.indexCreateCommand = indexCreateCommand;
     }
 
     @Override
     public void run() {
-        try {
-            IndexCreateCommand command = indexCreateBlockingQueue.poll(waitTime, TimeUnit.MILLISECONDS);
+        if (indexCreateCommand.getIndex() == null) {
+            elkClientService.createIndex(indexCreateCommand.getIndexName());
+        } else {
+            elkClientService.createIndex(indexCreateCommand.getIndexName(), indexCreateCommand.getIndex());
+        }
 
-            if (command.getIndex() == null) {
-                elkClientService.createIndex(command.getIndexName());
-            } else {
-                elkClientService.createIndex(command.getIndexName(), command.getIndex());
-            }
+        /**
+         * 初始化存储文档对应的zset的key值的set
+         * keyFormat : {索引名}_{文档类型set后缀}_{搜索提示字段1}_{搜索提示字段2}...
+         */
+        String documentSetKey = StringUtil.documentSetKey(indexCreateCommand);
 
-            /**
-             * 初始化存储文档对应的zset的key值的set
-             * keyFormat : {索引名}_{文档类型set后缀}_{搜索提示字段1}_{搜索提示字段2}...
-             */
-            String documentSetKey = String.format(setKeyFormat, command.getIndex(), documentSetKeySuffix);
+        for (String field : indexCreateCommand.getSearchPromptFields()) {
+            documentSetKey = documentSetKey.concat("_").concat(field);
+        }
 
-            for (String field : command.getSearchPromptFields()) {
-                documentSetKey = documentSetKey.concat("_").concat(field);
-            }
+        if (!redisClientService.exists(documentSetKey)) {
+            redisClientService.sAdd(documentSetKey);
+            redisClientService.sAdd(Launch.DOCUMENT_SETS_KEYS_SET_KEY, documentSetKey);
+        }
 
-            if (!redisClientService.exists(documentSetKey)) {
-                redisClientService.sAdd(documentSetKey);
-                redisClientService.sAdd(Launch.DOCUMENT_SETS_KEYS_SET_KEY, documentSetKey);
-            }
-
-            /**
-             * 初始化存储用户行为对应的zset的key值的set
-             */
-            String behaviorSetKey = String.format(setKeyFormat, command.getIndex(), behaviorSetKeySuffix);
-            if (!redisClientService.exists(behaviorSetKey)) {
-                redisClientService.sAdd(behaviorSetKey);
-                redisClientService.sAdd(Launch.BEHAVIOR_SETS_KEYS_SET_KEY, behaviorSetKey);
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        /**
+         * 初始化存储用户行为对应的zset的key值的set
+         */
+        String behaviorSetKey = StringUtil.behaviorSetKey(indexCreateCommand.getIndexName());
+        if (!redisClientService.exists(behaviorSetKey)) {
+            redisClientService.sAdd(behaviorSetKey);
+            redisClientService.sAdd(Launch.BEHAVIOR_SETS_KEYS_SET_KEY, behaviorSetKey);
         }
     }
 }

@@ -15,11 +15,11 @@ public class UserBehaviorZSetCleanUpJob implements Runnable {
 
     private RedisClientService redisClientService;
 
-    private Integer zSetCapacity;
+    private Long zSetCapacity;
 
-    private Integer zSetCacheCapacity;
+    private Long zSetCacheCapacity;
 
-    public UserBehaviorZSetCleanUpJob(RedisClientService redisClientService, Integer zSetCapacity, Integer zSetCacheCapacity) {
+    public UserBehaviorZSetCleanUpJob(RedisClientService redisClientService, Long zSetCapacity, Long zSetCacheCapacity) {
         this.redisClientService = redisClientService;
         this.zSetCapacity = zSetCapacity;
         this.zSetCacheCapacity = zSetCacheCapacity;
@@ -39,8 +39,8 @@ public class UserBehaviorZSetCleanUpJob implements Runnable {
             /**
              * 用户行为对应的zset清理比较简单，清理溢出的数据即可
              */
-            for (String zSetKey : behaviorSetKeys) {
-                redisClientService.zRemByRange(zSetKey, zSetCapacity + zSetCacheCapacity, -1);
+            for (String zSetKey : behaviorZSetKeys) {
+                redisClientService.zRemByRange(zSetKey, new Long(zSetCapacity + zSetCacheCapacity).intValue(), -1);
             }
         }
     }

@@ -1,43 +1,90 @@
 package com.tinysakura.smartsearchbox.core.job;
 
 import com.tinysakura.smartsearchbox.common.command.DocumentAddCommand;
+import com.tinysakura.smartsearchbox.core.Launch;
+import com.tinysakura.smartsearchbox.service.AnalyzerService;
 import com.tinysakura.smartsearchbox.service.ElkClientService;
+import com.tinysakura.smartsearchbox.service.RedisClientService;
+import com.tinysakura.smartsearchbox.util.StringUtil;
 
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 负责索引文档的job
  * @Author: chenfeihao@corp.netease.com
  * @Date: 2019/5/13
  */
+@SuppressWarnings("ALL")
 public class DocumentIndexJob implements Runnable {
     private ElkClientService elkClientService;
 
-    private LinkedBlockingQueue<DocumentAddCommand> documentAddBlockingQueue;
+    private DocumentAddCommand documentAddCommand;
 
-    private Long waitTime;
+    private RedisClientService redisClientService;
+
+    private AnalyzerService analyzerService;
 
     /**
      *
      * @param elkClientService elk客户端
-     * @param documentAddBlockingQueue 存放索引文档命令的阻塞队列
-     * @param waitTime 从阻塞队列中取命令允许阻塞的最大时间
+     * @param documentAddCommand 索引文档命令
      */
-    public DocumentIndexJob(ElkClientService elkClientService, LinkedBlockingQueue<DocumentAddCommand> documentAddBlockingQueue, Long waitTime) {
+    public DocumentIndexJob(ElkClientService elkClientService, RedisClientService redisClientService, AnalyzerService analyzerService, DocumentAddCommand documentAddCommand) {
         this.elkClientService = elkClientService;
-        this.documentAddBlockingQueue = documentAddBlockingQueue;
-        this.waitTime = waitTime;
+        this.documentAddCommand = documentAddCommand;
+        this.redisClientService = redisClientService;
+        this.analyzerService = analyzerService;
     }
 
     @Override
     public void run() {
-        try {
-            DocumentAddCommand command = documentAddBlockingQueue.poll(waitTime, TimeUnit.MILLISECONDS);
+        /**
+         * 索引文档
+         */
+        elkClientService.addDocument(documentAddCommand.getIndex(), documentAddCommand.getDocumentType(), documentAddCommand.getDocument());
 
-            elkClientService.addDocument(command.getIndex(), command.getDocumentType(), command.getDocument());
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        /**
+         * 分词后建立zset
+         */
+        Object document = documentAddCommand.getDocument();
+        String[] searchPromptFields = documentAddCommand.getSearchPromptFields();
+
+        Method[] methods = document.getClass().getDeclaredMethods();
+        Map<String, Method> methodMap = Arrays.asList(methods).stream().collect(Collectors.toMap(e -> e.getName(), e -> e));
+
+        String documentSetKey = StringUtil.documentSetKey(documentAddCommand);
+        String behaviorSetKey = StringUtil.behaviorSetKey(documentAddCommand.getIndex());
+
+        for (String field : searchPromptFields) {
+            // 使用反射获取对应属性上的值
+            String methodName = "get" + StringUtil.toUpperCaseFirstOne(field);
+            try {
+                Method method = methodMap.get(methodName);
+                if (method != null) {
+                    Object value = method.invoke(document);
+
+                    String[] analyzerResults = analyzerService.analyzer(value.toString());
+
+                    for (String analyzerResult : analyzerResults) {
+                        // 将结果填入对应的zset, 默认的初始score都为0
+                        String documentZSetKey = StringUtil.documentZSetKey(documentAddCommand.getIndex(), analyzerResult);
+                        redisClientService.zAdd(documentZSetKey, value.toString(), 0d);
+                        redisClientService.sAdd(documentSetKey, documentZSetKey);
+                        redisClientService.sAdd(Launch.DOCUMENT_SETS_KEYS_SET_KEY, documentSetKey);
+
+                        String behaviorZSetKey = StringUtil.behaviorZSetKey(documentAddCommand.getIndex(), analyzerResult);
+                        redisClientService.zAdd(behaviorZSetKey, value.toString(), 0d);
+                        redisClientService.sAdd(behaviorSetKey, documentZSetKey);
+                        redisClientService.sAdd(Launch.BEHAVIOR_SETS_KEYS_SET_KEY, behaviorSetKey);
+                    }
+                }
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
