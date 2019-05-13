@@ -26,18 +26,12 @@ public class DocumentZSetCleanUpJob implements Runnable {
 
     private String analyzer;
 
-    /**
-     * 指定使用文档中哪些字段的值作为搜索提示符
-     */
-    private String[] fields;
-
     public DocumentZSetCleanUpJob(ElkClientService elkClientService, RedisClientService redisClientService, String setKey, Integer zSetCapacity, Integer zSetCacheCapacity, String analyzer, String[] field) {
         this.elkClientService = elkClientService;
         this.redisClientService = redisClientService;
         this.zSetCapacity = zSetCapacity;
         this.zSetCacheCapacity = zSetCacheCapacity;
         this.analyzer = analyzer;
-        this.fields = field;
     }
 
     @Override

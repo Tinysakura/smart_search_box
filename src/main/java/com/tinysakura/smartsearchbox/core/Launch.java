@@ -106,7 +106,7 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
     private ExecutorService documentIndexThreadPool;
 
     /**
-     * 执行zset清理定时任务的线程池
+     * 执行清理用户行为对应的zset定时任务的线程池
      */
     private ScheduledExecutorService zsetCleanUpThreasPool;
 
@@ -115,19 +115,22 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
         this.indexCreateBlockingQueue = new LinkedBlockingQueue<>();
         this.indexInitThreadPool = Executors.newFixedThreadPool(this.indexProp.getIndexInitThreadPoolSize());
         this.documentIndexThreadPool = Executors.newFixedThreadPool(this.indexProp.getDocumentIndexThreadPoolSize());
-        this.zsetCleanUpThreasPool = Executors.newScheduledThreadPool(2);
+        this.zsetCleanUpThreasPool = Executors.newScheduledThreadPool(1);
 
         documentAnnotationProcessor();
     }
 
     public void initSetKey() {
         /**
-         * 初始化存放了所有behavior set的key值的set
+         * 初始化存放了所有document set的key值的set
          */
         if (!redisClientService.exists(DOCUMENT_SETS_KEYS_SET_KEY)) {
             redisClientService.sAdd(DOCUMENT_SETS_KEYS_SET_KEY);
         }
 
+        /**
+         * 初始化存放了所有behavior set的key值的set
+         */
         if (!redisClientService.exists(BEHAVIOR_SETS_KEYS_SET_KEY)) {
             redisClientService.sAdd(BEHAVIOR_SETS_KEYS_SET_KEY);
         }
