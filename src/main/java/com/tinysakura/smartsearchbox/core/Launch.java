@@ -51,6 +51,10 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
     /**
      * data
      */
+    public static final String DOCUMENT_SETS_KEYS_SET_KEY = "document";
+
+    public static final String BEHAVIOR_SETS_KEYS_SET_KEY = "behavior";
+
     private EndPointProp endPointProp;
 
     private IndexProp indexProp;
@@ -113,9 +117,20 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
         this.documentIndexThreadPool = Executors.newFixedThreadPool(this.indexProp.getDocumentIndexThreadPoolSize());
         this.zsetCleanUpThreasPool = Executors.newScheduledThreadPool(2);
 
-        initDocumentZSet();
-        initUserBehaviorZSet();
         documentAnnotationProcessor();
+    }
+
+    public void initSetKey() {
+        /**
+         * 初始化存放了所有behavior set的key值的set
+         */
+        if (!redisClientService.exists(DOCUMENT_SETS_KEYS_SET_KEY)) {
+            redisClientService.sAdd(DOCUMENT_SETS_KEYS_SET_KEY);
+        }
+
+        if (!redisClientService.exists(BEHAVIOR_SETS_KEYS_SET_KEY)) {
+            redisClientService.sAdd(BEHAVIOR_SETS_KEYS_SET_KEY);
+        }
     }
 
     public void setAnalyzer(AnalyzerService analyzerService) {
@@ -140,24 +155,6 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
 
     public void setSearchPromptProp(SearchPromptProp searchPromptProp) {
         this.searchPromptProp = searchPromptProp;
-    }
-
-    /**
-     * 初始化文档对应的zset
-     */
-    private void initDocumentZSet() {
-        if (!redisClientService.exists(searchPromptProp.getDocumentZSetKey())) {
-            redisClientService.zSet(searchPromptProp.getDocumentZSetKey(), null);
-        }
-    }
-
-    /**
-     * 初始化用户行为对应的zset
-     */
-    private void initUserBehaviorZSet() {
-        if (!redisClientService.exists(searchPromptProp.getBehaviorZSetKey())) {
-            redisClientService.zSet(searchPromptProp.getBehaviorZSetKey(), null);
-        }
     }
 
     /**
@@ -205,6 +202,8 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
             }
 
             indexCreateCommand.setIndex(indexBuilder.build().getIndex());
+            indexCreateCommand.setSearchPromptFields(documentAnnotation.searchPromptFields());
+            indexCreateCommand.setDocumentType(documentAnnotation.documentType());
 
             try {
                 indexCreateBlockingQueue.put(indexCreateCommand);

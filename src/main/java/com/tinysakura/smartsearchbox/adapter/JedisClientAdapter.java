@@ -40,6 +40,19 @@ public class JedisClientAdapter implements RedisClientService {
     }
 
     @Override
+    public void del(String key) {
+        Jedis jedis = null;
+
+        try {
+            jedis = jedisPool.getResource();
+            jedis.del(key);
+        } finally {
+            //返还到连接池
+            jedis.close();
+        }
+    }
+
+    @Override
     public void zSet(String key, Map<String, Double> map) {
         Jedis jedis = null;
 
@@ -167,6 +180,19 @@ public class JedisClientAdapter implements RedisClientService {
             jedis = jedisPool.getResource();
 
             jedis.sadd(key, value);
+        } finally {
+            jedis.close();
+        }
+    }
+
+    @Override
+    public Set<String> sMembers(String key) {
+        Jedis jedis = null;
+
+        try {
+            jedis = jedisPool.getResource();
+
+            return jedis.smembers(key);
         } finally {
             jedis.close();
         }

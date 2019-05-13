@@ -13,4 +13,8 @@ public class IndexCreateCommand {
     private String indexName;
 
     private Index index;
+
+    private String documentType;
+
+    private String[] searchPromptFields;
 }

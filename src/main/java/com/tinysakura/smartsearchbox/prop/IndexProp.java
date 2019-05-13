@@ -26,6 +26,9 @@ public class IndexProp {
     @Value("smart_search_box.index_query.highlight.post_tags")
     private String highlightPostTags;
 
+    @Value("smart_search_box.index_query.default_analyzer")
+    private String defaultAnalyzer;
+
     @Value("smart_search_box.document_index.async")
     private boolean async;
 
@@ -40,6 +43,7 @@ public class IndexProp {
         IndexProp indexProp = new IndexProp();
         indexProp.setIndexInitThreadPoolSize(this.indexInitThreadPoolSize);
         indexProp.setDocumentIndexThreadPoolSize(this.documentIndexThreadPoolSize);
+        indexProp.setDefaultAnalyzer(this.defaultAnalyzer);
         indexProp.setHighlightPreTags(this.highlightPreTags);
         indexProp.setHighlightPostTags(this.highlightPostTags);
         indexProp.setAsync(this.async);

@@ -27,6 +27,12 @@ public @interface Document {
     public String documentType() default "";
 
     /**
+     * 指定搜索提示字段
+     * @return
+     */
+    public String[] searchPromptFields() default "";
+
+    /**
      * 指定分片数量
      * @return
      */

@@ -1,17 +1,19 @@
 package com.tinysakura.smartsearchbox.adapter;
 
 import com.tinysakura.bean.index.Index;
+import com.tinysakura.bean.query.result.Hit;
+import com.tinysakura.bean.query.result.QueryResponse;
 import com.tinysakura.core.query.QueryBody;
-import com.tinysakura.core.query.base.FuzzyQuery;
-import com.tinysakura.core.query.base.IdsQuery;
-import com.tinysakura.core.query.base.PrefixQuery;
-import com.tinysakura.core.query.base.TermQuery;
+import com.tinysakura.core.query.base.*;
 import com.tinysakura.core.query.highlight.HighLightQuery;
 import com.tinysakura.net.client.RetrofitProxyServiceHolder;
 import com.tinysakura.net.retrofit.service.DocumentService;
 import com.tinysakura.net.retrofit.service.IndexService;
 import com.tinysakura.net.retrofit.service.QueryService;
+import com.tinysakura.smartsearchbox.common.entity.DocumentScore;
 import com.tinysakura.smartsearchbox.service.ElkClientService;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,12 +63,12 @@ public class SmartElkClientAdapter implements ElkClientService {
     }
 
     @Override
-    public List<Object> termQuery(String index, String documentType, String field, Object value, Double boost, Integer pageIndex, Integer pageSize, Class clazz) {
+    public List<DocumentScore> termQuery(String index, String documentType, String field, Object value, Double boost, Integer pageIndex, Integer pageSize, Class clazz) {
         return termQuery(index, documentType, field, value, boost, pageIndex, pageSize, clazz, null, null);
     }
 
     @Override
-    public List<Object> termQuery(String index, String documentType, String field, Object value, Double boost, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags) {
+    public List<DocumentScore> termQuery(String index, String documentType, String field, Object value, Double boost, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags) {
         QueryBody.Builder queryBodyBuilder = new QueryBody.Builder();
         TermQuery.Builder termQueryBuilder = new TermQuery.Builder();
         TermQuery termQuery = termQueryBuilder.field(field).value(value).boost(boost).build();
@@ -83,12 +85,12 @@ public class SmartElkClientAdapter implements ElkClientService {
     }
 
     @Override
-    public List<Object> prefixQuery(String index, String documentType, String field, String prefix, Double boost, Integer pageIndex, Integer pageSize, Class clazz) {
+    public List<DocumentScore> prefixQuery(String index, String documentType, String field, String prefix, Double boost, Integer pageIndex, Integer pageSize, Class clazz) {
         return prefixQuery(index, documentType, field, prefix, boost, pageIndex, pageSize, clazz, null, null);
     }
 
     @Override
-    public List<Object> prefixQuery(String index, String documentType, String field, String prefix, Double boost, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags) {
+    public List<DocumentScore> prefixQuery(String index, String documentType, String field, String prefix, Double boost, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags) {
         QueryBody.Builder queryBodyBuilder = new QueryBody.Builder();
         PrefixQuery.Builder prefixQueryBuilder = new PrefixQuery.Builder();
         PrefixQuery prefixQuery = prefixQueryBuilder.fields(field).prefix(prefix).boost(boost).build();
@@ -105,12 +107,12 @@ public class SmartElkClientAdapter implements ElkClientService {
     }
 
     @Override
-    public List<Object> fuzzyQuery(String index, String documentType, String field, String likeText, Double minSimilarity, Double boost, Integer pageIndex, Integer pageSize, Class clazz) {
+    public List<DocumentScore> fuzzyQuery(String index, String documentType, String field, String likeText, Double minSimilarity, Double boost, Integer pageIndex, Integer pageSize, Class clazz) {
         return fuzzyQuery(index, documentType, field, likeText, minSimilarity, boost, pageIndex, pageSize, clazz, null, null);
     }
 
     @Override
-    public List<Object> fuzzyQuery(String index, String documentType, String field, String likeText, Double minSimilarity, Double boost, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags) {
+    public List<DocumentScore> fuzzyQuery(String index, String documentType, String field, String likeText, Double minSimilarity, Double boost, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags) {
         QueryBody.Builder queryBodyBuilder = new QueryBody.Builder();
         FuzzyQuery.Builder fuzzyQueryBuilder = new FuzzyQuery.Builder();
         FuzzyQuery fuzzyQuery = fuzzyQueryBuilder.field(field).likeText(likeText).boost(boost).build();
@@ -127,12 +129,56 @@ public class SmartElkClientAdapter implements ElkClientService {
     }
 
     @Override
-    public Object idsQuery(String index, String documentType, String id, Integer pageIndex, Integer pageSize, Class clazz) {
+    public List<DocumentScore> multiMatchQuery(String index, String documentType, String[] fields, String text, String analyzer, Integer pageIndex, Integer pageSize, Class clazz) {
+        return multiMatchQuery(index, documentType, fields, text, analyzer, pageIndex, pageSize, clazz, null, null);
+    }
+
+    @Override
+    public QueryResponse multiMatchQuery(String index, String documentType, String[] fields, String text, String analyzer, Integer pageIndex, Integer pageSize) {
+        QueryBody.Builder queryBodyBuilder = new QueryBody.Builder();
+        MultiMatchQuery.Builder multiMatchQueryBuilder = new MultiMatchQuery.Builder();
+        MultiMatchQuery multiMatchQuery = multiMatchQueryBuilder.query(text).fields(fields).analyzer(analyzer).build();
+        queryBodyBuilder.query(multiMatchQuery.getQuery()).from((pageIndex - 1) * pageSize).size(pageSize).build();
+        QueryBody queryBody = queryBodyBuilder.build();
+
+        QueryResponse[] result = new QueryResponse[1];
+
+        /**
+         * 当出现异常时返回null
+         */
+        if (StringUtils.isEmpty(documentType)) {
+            queryService.search(index, queryBody.getQueryBody()).doOnError(throwable -> result[0] = null).subscribe(queryResponse -> result[0] = queryResponse);
+        } else {
+            queryService.search(index, documentType, queryBody.getQueryBody()).doOnError(throwable -> result[0] = null).subscribe(queryResponse -> result[0] = queryResponse);
+        }
+
+        return result[0];
+    }
+
+    @Override
+    public List<DocumentScore> multiMatchQuery(String index, String documentType, String[] fields, String text, String analyzer, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags) {
+        QueryBody.Builder queryBodyBuilder = new QueryBody.Builder();
+        MultiMatchQuery.Builder multiMatchQueryBuilder = new MultiMatchQuery.Builder();
+        MultiMatchQuery multiMatchQuery = multiMatchQueryBuilder.query(text).fields(fields).analyzer(analyzer).build();
+        queryBodyBuilder.query(multiMatchQuery.getQuery()).from((pageIndex - 1) * pageSize).size(pageSize).build();
+
+        if (preTags != null && postTags != null) {
+            HighLightQuery.Builder highlightQueryBuilder = new HighLightQuery.Builder();
+            HighLightQuery highLightQuery = highlightQueryBuilder.globalPreTags(new String[]{preTags}).gloabalPostTags(new String[]{postTags}).build();
+            queryBodyBuilder.highlight(highLightQuery.getHighLightEntry());
+        }
+
+        QueryBody queryBody = queryBodyBuilder.build();
+        return commonQuery(index, documentType, queryBody, clazz);
+    }
+
+    @Override
+    public DocumentScore idsQuery(String index, String documentType, String id, Integer pageIndex, Integer pageSize, Class clazz) {
         return idsQuery(index, documentType, id, pageIndex, pageSize, clazz, null, null);
     }
 
     @Override
-    public Object idsQuery(String index, String documentType, String id, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags) {
+    public DocumentScore idsQuery(String index, String documentType, String id, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags) {
         QueryBody.Builder queryBodyBuilder = new QueryBody.Builder();
         IdsQuery.Builder idsQueryBuilder = new IdsQuery.Builder();
         IdsQuery idsQuery = idsQueryBuilder.documentType(documentType).documentIds(new String[]{id}).build();
@@ -145,17 +191,47 @@ public class SmartElkClientAdapter implements ElkClientService {
         }
 
         QueryBody queryBody = queryBodyBuilder.build();
-        return commonQuery(index, documentType, queryBody, clazz);
+        List<DocumentScore> documentScoreList = commonQuery(index, documentType, queryBody, clazz);
+        if (!CollectionUtils.isEmpty(documentScoreList)) {
+            return documentScoreList.get(0);
+        }
+
+        return null;
     }
 
-    private List<Object> commonQuery(String index, String documentType, QueryBody queryBody, Class clazz) {
-        List<Object>[] queryResults = new List[1];
+    private List<DocumentScore> commonQuery(String index, String documentType, QueryBody queryBody, Class clazz) {
+        QueryResponse[] result = new QueryResponse[1];
 
         /**
-         * 当出现异常时返回一个空的列表
+         * 当出现异常时返回null
          */
-        queryService.search(index, documentType, queryBody.getQueryBody(), clazz).doOnError(throwable -> queryResults[0] = new ArrayList<>()).subscribe(queryResponse -> queryResults[0] = queryResponse.getResults());
+        if (StringUtils.isEmpty(documentType)) {
+            queryService.search(index, queryBody.getQueryBody(), clazz).doOnError(throwable -> result[0] = null).subscribe(queryResponse -> result[0] = queryResponse);
+        } else {
+            queryService.search(index, documentType, queryBody.getQueryBody(), clazz).doOnError(throwable -> result[0] = null).subscribe(queryResponse -> result[0] = queryResponse);
+        }
 
-        return queryResults[0];
+        if (result[0] == null) {
+            return null;
+        }
+
+        QueryResponse queryResponse = result[0];
+
+        Hit[] hits = queryResponse.getHits().getHits();
+        List<Object> documents = queryResponse.getResults();
+        List<DocumentScore> documentScoreList = new ArrayList<>();
+
+
+        for (int i = 0; i < hits.length; i++) {
+            Hit hit = hits[i];
+            Object document = documents.get(i);
+            DocumentScore documentScore = new DocumentScore();
+            documentScore.setDocument(document);
+            documentScore.setScore(hit.get_score());
+
+            documentScoreList.add(documentScore);
+        }
+
+        return documentScoreList;
     }
 }

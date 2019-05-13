@@ -14,7 +14,19 @@ public interface RedisClientService {
     /**
      * 基础操作相关接口
      */
+
+    /**
+     * 判断key是否已存在
+     * @param key
+     * @return
+     */
     Boolean exists(String key);
+
+    /**
+     * 删除key对应的value
+     * @param key
+     */
+    void del(String key);
 
     /**
      * sorted set操作相关接口
@@ -92,4 +104,10 @@ public interface RedisClientService {
      */
     void sAdd(String key, String... value);
 
+    /**
+     * 获取普通set中的所有元素
+     * @param key
+     * @return
+     */
+    Set<String> sMembers(String key);
 }

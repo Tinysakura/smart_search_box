@@ -42,13 +42,5 @@ public @interface Index {
      * 指定搜索提示字段
      * @return
      */
-    public String prompt() default "";
-
-    /**
-     * 指定文档搜索提示表达式，用于计算推荐分
-     * @return
-     */
-    public String promptExpression() default "";
-
-
+    public String[] searchPromptFields() default "";
 }

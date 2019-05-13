@@ -6,5 +6,10 @@ package com.tinysakura.smartsearchbox.core.job;
  * @Date: 2019/5/13
  */
 
-public class UserBehaviorZSetCleanUpJob {
+public class UserBehaviorZSetCleanUpJob implements Runnable {
+
+    @Override
+    public void run() {
+
+    }
 }

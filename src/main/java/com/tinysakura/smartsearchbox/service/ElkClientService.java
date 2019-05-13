@@ -2,6 +2,8 @@ package com.tinysakura.smartsearchbox.service;
 
 
 import com.tinysakura.bean.index.Index;
+import com.tinysakura.bean.query.result.QueryResponse;
+import com.tinysakura.smartsearchbox.common.entity.DocumentScore;
 
 import java.util.List;
 
@@ -46,9 +48,10 @@ public interface ElkClientService {
      * @param pageSize
      * @param clazz
      */
-    List<Object> termQuery(String index, String documentType, String field, Object value, Double boost, Integer pageIndex, Integer pageSize, Class clazz);
+    List<DocumentScore> termQuery(String index, String documentType, String field, Object value, Double boost, Integer pageIndex, Integer pageSize, Class clazz);
 
-    List<Object> termQuery(String index, String documentType, String field, Object value, Double boost, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags);
+    List<DocumentScore> termQuery(String index, String documentType, String field, Object value, Double boost, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags);
+
 
     /**
      * 前缀查询
@@ -61,9 +64,9 @@ public interface ElkClientService {
      * @param pageSize
      * @param clazz
      */
-    List<Object> prefixQuery(String index, String documentType, String field, String prefix, Double boost, Integer pageIndex, Integer pageSize, Class clazz);
+    List<DocumentScore> prefixQuery(String index, String documentType, String field, String prefix, Double boost, Integer pageIndex, Integer pageSize, Class clazz);
 
-    List<Object> prefixQuery(String index, String documentType, String field, String prefix, Double boost, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags);
+    List<DocumentScore> prefixQuery(String index, String documentType, String field, String prefix, Double boost, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags);
 
     /**
      * 模糊查询
@@ -78,9 +81,27 @@ public interface ElkClientService {
      * @param clazz
      * @return
      */
-    List<Object> fuzzyQuery(String index, String documentType, String field, String likeText, Double minSimilarity, Double boost, Integer pageIndex, Integer pageSize, Class clazz);
+    List<DocumentScore> fuzzyQuery(String index, String documentType, String field, String likeText, Double minSimilarity, Double boost, Integer pageIndex, Integer pageSize, Class clazz);
 
-    List<Object> fuzzyQuery(String index, String documentType, String field, String likeText, Double minSimilarity, Double boost, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags);
+    List<DocumentScore> fuzzyQuery(String index, String documentType, String field, String likeText, Double minSimilarity, Double boost, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags);
+
+    /**
+     * multiMatch查询
+     * @param index
+     * @param documentType
+     * @param fields
+     * @param text
+     * @param analyzer
+     * @param pageIndex
+     * @param pageSize
+     * @param clazz
+     * @return
+     */
+    List<DocumentScore> multiMatchQuery(String index, String documentType, String[] fields, String text, String analyzer, Integer pageIndex, Integer pageSize, Class clazz);
+
+    QueryResponse multiMatchQuery(String index, String documentType, String[] fields, String text, String analyzer, Integer pageIndex, Integer pageSize);
+
+    List<DocumentScore> multiMatchQuery(String index, String documentType, String[] fields, String text, String analyzer, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags);
 
     /**
      * 文档标识符查询
@@ -92,7 +113,7 @@ public interface ElkClientService {
      * @param clazz
      * @return
      */
-    Object idsQuery(String index, String documentType, String id, Integer pageIndex, Integer pageSize, Class clazz);
+    DocumentScore idsQuery(String index, String documentType, String id, Integer pageIndex, Integer pageSize, Class clazz);
 
-    Object idsQuery(String index, String documentType, String id, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags);
+    DocumentScore idsQuery(String index, String documentType, String id, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags);
 }
