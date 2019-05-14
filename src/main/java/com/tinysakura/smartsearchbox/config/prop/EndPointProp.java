@@ -1,4 +1,4 @@
-package com.tinysakura.smartsearchbox.prop;
+package com.tinysakura.smartsearchbox.config.prop;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;

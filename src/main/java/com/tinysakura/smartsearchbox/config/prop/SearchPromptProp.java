@@ -1,4 +1,4 @@
-package com.tinysakura.smartsearchbox.prop;
+package com.tinysakura.smartsearchbox.config.prop;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,9 +18,6 @@ public class SearchPromptProp {
 
     @Value("smart_search_box.search_prompt.document.ratio")
     private Double documentRatio;
-
-    @Value("smart_search_box.search_prompt.number")
-    private Integer number;
 
     @Value("smart_search_box.search_prompt.zset.capacity")
     private Long zSetCapacity;
@@ -42,7 +39,6 @@ public class SearchPromptProp {
         SearchPromptProp searchPromptProp = new SearchPromptProp();
         searchPromptProp.setBehaviorRatio(this.behaviorRatio);
         searchPromptProp.setDocumentRatio(this.documentRatio);
-        searchPromptProp.setNumber(this.number);
         searchPromptProp.setZSetCapacity(this.zSetCapacity);
         searchPromptProp.setZSetCacheCapacity(this.zSetCacheCapacity);
         searchPromptProp.setBehaviorZSetCleanUpInterval(this.behaviorZSetCleanUpInterval);

@@ -11,11 +11,14 @@ import java.util.List;
  */
 @Data
 public class PaginationResponseView<T> {
+    /**
+     * {@link com.tinysakura.smartsearchbox.constant.enums.ResponseCodeEnum}
+     */
     private Integer code;
 
     private String message;
 
-    private List<T> results;
+    private T results;
 
     private Pagination pagination;
 }

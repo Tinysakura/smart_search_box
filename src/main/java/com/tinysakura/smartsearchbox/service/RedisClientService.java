@@ -94,6 +94,14 @@ public interface RedisClientService {
     Set<String> zUnion(String... keys);
 
     /**
+     * 把指定集合中指定value的分数加上指定的值
+     * @param key
+     * @param score
+     * @param value
+     */
+    void zincrby(String key, Double score, String value);
+
+    /**
      * 普通set操作相关接口
      */
 

@@ -1,4 +1,4 @@
-package com.tinysakura.smartsearchbox.prop;
+package com.tinysakura.smartsearchbox.config.prop;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,6 +38,11 @@ public class IndexProp {
     @Value("smart_search_box.annotation.index.scan.package")
     private String indexAnnotationScanPath;
 
+    @Value("smart_search_box.index_query.document_type")
+    private String documentClasses;
+
+    private String[] classes;
+
     @Bean
     public IndexProp indexInitProp() {
         IndexProp indexProp = new IndexProp();
@@ -49,6 +54,7 @@ public class IndexProp {
         indexProp.setAsync(this.async);
         indexProp.setDocumentAnnotationScanPath(this.documentAnnotationScanPath);
         indexProp.setIndexAnnotationScanPath(this.indexAnnotationScanPath);
+        indexProp.setClasses(this.documentClasses.split(","));
 
         return indexProp;
     }

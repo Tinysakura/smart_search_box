@@ -11,9 +11,9 @@ import com.tinysakura.smartsearchbox.core.job.DocumentZSetCleanUpJob;
 import com.tinysakura.smartsearchbox.core.job.IndexInitJob;
 import com.tinysakura.smartsearchbox.core.job.UserBehaviorZSetCleanUpJob;
 import com.tinysakura.smartsearchbox.core.proxy.DocumentIndexInvocationHandler;
-import com.tinysakura.smartsearchbox.prop.EndPointProp;
-import com.tinysakura.smartsearchbox.prop.IndexProp;
-import com.tinysakura.smartsearchbox.prop.SearchPromptProp;
+import com.tinysakura.smartsearchbox.config.prop.EndPointProp;
+import com.tinysakura.smartsearchbox.config.prop.IndexProp;
+import com.tinysakura.smartsearchbox.config.prop.SearchPromptProp;
 import com.tinysakura.smartsearchbox.service.AnalyzerService;
 import com.tinysakura.smartsearchbox.service.ElkClientService;
 import com.tinysakura.smartsearchbox.service.RedisClientService;
@@ -188,7 +188,7 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
     }
 
     /**
-     * 启动文档对应的zset的定时任务
+     * 启动清理文档对应的zset的定时任务
      */
     public void startDocumentZsetCleanUpTimingTask() {
         DocumentZSetCleanUpJob job = new DocumentZSetCleanUpJob(elkClientService, redisClientService, searchPromptProp.getZSetCapacity(), searchPromptProp.getZSetCacheCapacity(), indexProp.getDefaultAnalyzer(), redissonClient);

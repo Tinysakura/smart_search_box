@@ -4,9 +4,12 @@ import com.tinysakura.smartsearchbox.adapter.IkAnalyzerAdapter;
 import com.tinysakura.smartsearchbox.adapter.JedisClientAdapter;
 import com.tinysakura.smartsearchbox.adapter.SmartElkClientAdapter;
 import com.tinysakura.smartsearchbox.core.Launch;
-import com.tinysakura.smartsearchbox.prop.EndPointProp;
-import com.tinysakura.smartsearchbox.prop.IndexProp;
-import com.tinysakura.smartsearchbox.prop.SearchPromptProp;
+import com.tinysakura.smartsearchbox.config.prop.EndPointProp;
+import com.tinysakura.smartsearchbox.config.prop.IndexProp;
+import com.tinysakura.smartsearchbox.config.prop.SearchPromptProp;
+import com.tinysakura.smartsearchbox.service.AnalyzerService;
+import com.tinysakura.smartsearchbox.service.ElkClientService;
+import com.tinysakura.smartsearchbox.service.RedisClientService;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -42,9 +45,9 @@ public class LaunchConfiguration {
     public Launch launch() {
         Launch launch = new Launch();
 
-        IkAnalyzerAdapter ikAnalyzerAdapter = new IkAnalyzerAdapter(false);
-        JedisClientAdapter jedisClientAdapter = new JedisClientAdapter(jedisPool, searchPromptProp.getZSetCapacity(), searchPromptProp.getZSetCacheCapacity());
-        SmartElkClientAdapter smartElkClientAdapter = new SmartElkClientAdapter();
+        AnalyzerService ikAnalyzerAdapter = ikAnalyzerAdapter();
+        RedisClientService jedisClientAdapter = jedisClientAdapter();
+        ElkClientService smartElkClientAdapter = smartElkClientAdapter();
 
         launch.setAnalyzer(ikAnalyzerAdapter);
         launch.setRedisClient(jedisClientAdapter);
@@ -52,7 +55,30 @@ public class LaunchConfiguration {
         launch.setEndPointProp(endPointProp);
         launch.setIndexProp(indexProp);
         launch.setSearchPromptProp(searchPromptProp);
+        launch.setRedissonClient(redissonClient);
 
         return launch;
     }
+
+    @Bean
+    public AnalyzerService ikAnalyzerAdapter() {
+        IkAnalyzerAdapter ikAnalyzerAdapter = new IkAnalyzerAdapter(false);
+
+        return ikAnalyzerAdapter;
+    }
+
+    @Bean
+    public RedisClientService jedisClientAdapter() {
+        JedisClientAdapter jedisClientAdapter = new JedisClientAdapter(jedisPool, searchPromptProp.getZSetCapacity(), searchPromptProp.getZSetCacheCapacity());
+
+        return jedisClientAdapter;
+    }
+
+    @Bean
+    public ElkClientService smartElkClientAdapter() {
+        ElkClientService smartElkClientAdapter = new SmartElkClientAdapter();
+
+        return smartElkClientAdapter;
+    }
+
 }

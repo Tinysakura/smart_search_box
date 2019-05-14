@@ -173,6 +173,19 @@ public class JedisClientAdapter implements RedisClientService {
     }
 
     @Override
+    public void zincrby(String key, Double score, String value) {
+        Jedis jedis = null;
+
+        try {
+            jedis = jedisPool.getResource();
+
+            jedis.zincrby(key, score, value);
+        } finally {
+            jedis.close();
+        }
+    }
+
+    @Override
     public void sAdd(String key, String... value) {
         Jedis jedis = null;
 
