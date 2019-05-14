@@ -7,6 +7,7 @@ import com.tinysakura.smartsearchbox.core.Launch;
 import com.tinysakura.smartsearchbox.prop.EndPointProp;
 import com.tinysakura.smartsearchbox.prop.IndexProp;
 import com.tinysakura.smartsearchbox.prop.SearchPromptProp;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,7 +16,7 @@ import redis.clients.jedis.JedisPool;
 import javax.annotation.Resource;
 
 /**
- * 使用默认的配置启动并注入Launch，如果不想使用框架提供的默认实现可以配置不扫描该包路径即可
+ * 使用默认的配置启动并注入Launch，如果不想使用框架提供的默认实现可以配置扫描该包路径时忽略该config类即可
  * @Author: chenfeihao@corp.netease.com
  * @Date: 2019/5/11
  */
@@ -33,6 +34,9 @@ public class LaunchConfiguration {
 
     @Autowired
     private SearchPromptProp searchPromptProp;
+
+    @Autowired
+    private RedissonClient redissonClient;
 
     @Bean
     public Launch launch() {

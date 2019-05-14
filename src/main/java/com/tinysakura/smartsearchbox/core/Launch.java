@@ -7,6 +7,7 @@ import com.tinysakura.smartsearchbox.annotation.Document;
 import com.tinysakura.smartsearchbox.common.command.DocumentAddCommand;
 import com.tinysakura.smartsearchbox.common.command.IndexCreateCommand;
 import com.tinysakura.smartsearchbox.core.job.DocumentIndexJob;
+import com.tinysakura.smartsearchbox.core.job.DocumentZSetCleanUpJob;
 import com.tinysakura.smartsearchbox.core.job.IndexInitJob;
 import com.tinysakura.smartsearchbox.core.job.UserBehaviorZSetCleanUpJob;
 import com.tinysakura.smartsearchbox.core.proxy.DocumentIndexInvocationHandler;
@@ -19,6 +20,7 @@ import com.tinysakura.smartsearchbox.service.RedisClientService;
 import com.tinysakura.smartsearchbox.util.ReflectUtil;
 import com.tinysakura.smartsearchbox.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -80,6 +82,8 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
      */
     private ElkClientService elkClientService;
 
+    private RedissonClient redissonClient;
+
     /**
      * redis交互能力组件
      */
@@ -108,14 +112,17 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
     /**
      * 执行清理用户行为对应的zset定时任务的线程池
      */
-    private ScheduledExecutorService zsetCleanUpThreasPool;
+    private ScheduledExecutorService behaviorZsetCleanUpThreadPool;
+
+    private ExecutorService documentZsetCleanUpThreadPool;
 
     public Launch() {
         this.documentAddBlockingQueue = new LinkedBlockingQueue<>();
         this.indexInitBlockingQueue = new LinkedBlockingQueue<>();
         this.indexInitThreadPool = Executors.newFixedThreadPool(this.indexProp.getIndexInitThreadPoolSize());
         this.documentIndexThreadPool = Executors.newFixedThreadPool(this.indexProp.getDocumentIndexThreadPoolSize());
-        this.zsetCleanUpThreasPool = Executors.newScheduledThreadPool(1);
+        this.behaviorZsetCleanUpThreadPool = Executors.newScheduledThreadPool(1);
+        this.documentZsetCleanUpThreadPool = Executors.newSingleThreadExecutor();
 
         documentAnnotationProcessor();
         initSetKey();
@@ -177,7 +184,15 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
      */
     private void startBehaviorZSetCleanUpTimingTask() {
         UserBehaviorZSetCleanUpJob job = new UserBehaviorZSetCleanUpJob(redisClientService, searchPromptProp.getZSetCapacity(), searchPromptProp.getZSetCacheCapacity());
-        zsetCleanUpThreasPool.scheduleAtFixedRate(job, 1000 * 60 * 60 * 20, searchPromptProp.getBehaviorZSetCleanUpInterval(), TimeUnit.MILLISECONDS);
+        behaviorZsetCleanUpThreadPool.scheduleAtFixedRate(job, 1000 * 60 * 60 * 20, searchPromptProp.getBehaviorZSetCleanUpInterval(), TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * 启动文档对应的zset的定时任务
+     */
+    public void startDocumentZsetCleanUpTimingTask() {
+        DocumentZSetCleanUpJob job = new DocumentZSetCleanUpJob(elkClientService, redisClientService, searchPromptProp.getZSetCapacity(), searchPromptProp.getZSetCacheCapacity(), indexProp.getDefaultAnalyzer(), redissonClient);
+        documentZsetCleanUpThreadPool.submit(job);
     }
 
     /**
@@ -374,5 +389,9 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
 
     public void setSearchPromptProp(SearchPromptProp searchPromptProp) {
         this.searchPromptProp = searchPromptProp;
+    }
+
+    public void setRedissonClient(RedissonClient redissonClient) {
+        this.redissonClient = redissonClient;
     }
 }

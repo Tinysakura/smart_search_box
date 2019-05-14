@@ -6,6 +6,8 @@ import com.tinysakura.smartsearchbox.core.Launch;
 import com.tinysakura.smartsearchbox.service.ElkClientService;
 import com.tinysakura.smartsearchbox.service.RedisClientService;
 import com.tinysakura.smartsearchbox.util.StringUtil;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 
 import java.util.Set;
 
@@ -16,6 +18,9 @@ import java.util.Set;
  * @Date: 2019/5/13
  */
 public class DocumentZSetCleanUpJob implements Runnable {
+
+    private static final String DOCUMENT_ZSET_CLEANUP_JOB = "document_zset_cleanup_key";
+
     private ElkClientService elkClientService;
 
     private RedisClientService redisClientService;
@@ -26,45 +31,56 @@ public class DocumentZSetCleanUpJob implements Runnable {
 
     private String analyzer;
 
-    public DocumentZSetCleanUpJob(ElkClientService elkClientService, RedisClientService redisClientService, String setKey, Long zSetCapacity, Long zSetCacheCapacity, String analyzer, String[] field) {
+    private RedissonClient redissonClient;
+
+    public DocumentZSetCleanUpJob(ElkClientService elkClientService, RedisClientService redisClientService, Long zSetCapacity, Long zSetCacheCapacity, String analyzer, RedissonClient redissonClient) {
         this.elkClientService = elkClientService;
         this.redisClientService = redisClientService;
         this.zSetCapacity = zSetCapacity;
         this.zSetCacheCapacity = zSetCacheCapacity;
         this.analyzer = analyzer;
+        this.redissonClient = redissonClient;
     }
 
     @Override
     public void run() {
         /**
-         * 从三级存储结构的最上层取出所有文档相关的set keys
-         * keyFormat : {索引名}_{文档类型set后缀}_{搜索提示字段1}_{搜索提示字段2}...
+         * 使用分布式锁保证幂等
          */
-        Set<String> documentSetKeys = redisClientService.sMembers(Launch.DOCUMENT_SETS_KEYS_SET_KEY);
+        RLock rLock = redissonClient.getLock(DOCUMENT_ZSET_CLEANUP_JOB);
 
-        for (String documentSetKey : documentSetKeys) {
-            String index = StringUtil.extractIndexNameFromKey(documentSetKey);
-            String[] fields = StringUtil.extractFieldsFromKey(documentSetKey);
-
+        boolean lock = rLock.tryLock();
+        if (lock) {
             /**
-             * 根据文档得分重排序zset
+             * 从三级存储结构的最上层取出所有文档相关的set keys
+             * keyFormat : {索引名}_{文档类型set后缀}_{搜索提示字段1}_{搜索提示字段2}...
              */
-            Set<String> zSetKeys = redisClientService.sMembers(documentSetKey);
+            Set<String> documentSetKeys = redisClientService.sMembers(Launch.DOCUMENT_SETS_KEYS_SET_KEY);
 
-            for (String zSetKey : zSetKeys) {
-                redisClientService.del(zSetKey);
+            for (String documentSetKey : documentSetKeys) {
+                String index = StringUtil.extractIndexNameFromKey(documentSetKey);
+                String[] fields = StringUtil.extractFieldsFromKey(documentSetKey);
 
-                QueryResponse queryResponse = elkClientService.multiMatchQuery(index, null, fields, zSetKey, analyzer, 0, new Long(zSetCapacity + zSetCacheCapacity).intValue());
-                Hit[] hits = queryResponse.getHits().getHits();
+                /**
+                 * 根据文档得分重排序zset
+                 */
+                Set<String> zSetKeys = redisClientService.sMembers(documentSetKey);
 
-                for (Hit hit : hits) {
-                    if (hit.get_source() != null) {
-                        for (String field : fields) {
-                            redisClientService.zAdd(zSetKey, String.valueOf(hit.get_source().get(field)), hit.get_score().doubleValue());
-                        }
-                    } else {
-                        for (String field : fields) {
-                            redisClientService.zAdd(zSetKey, String.valueOf(hit.getFields().get(field)[0]), hit.get_score().doubleValue());
+                for (String zSetKey : zSetKeys) {
+                    redisClientService.del(zSetKey);
+
+                    QueryResponse queryResponse = elkClientService.multiMatchQuery(index, null, fields, zSetKey, analyzer, 0, new Long(zSetCapacity + zSetCacheCapacity).intValue());
+                    Hit[] hits = queryResponse.getHits().getHits();
+
+                    for (Hit hit : hits) {
+                        if (hit.get_source() != null) {
+                            for (String field : fields) {
+                                redisClientService.zAdd(zSetKey, String.valueOf(hit.get_source().get(field)), hit.get_score().doubleValue());
+                            }
+                        } else {
+                            for (String field : fields) {
+                                redisClientService.zAdd(zSetKey, String.valueOf(hit.getFields().get(field)[0]), hit.get_score().doubleValue());
+                            }
                         }
                     }
                 }
