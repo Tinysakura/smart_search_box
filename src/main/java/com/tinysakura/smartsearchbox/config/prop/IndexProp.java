@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Configuration;
  * @Author: chenfeihao@corp.netease.com
  * @Date: 2019/5/10
  */
-@Configuration
 @Data
 public class IndexProp {
 

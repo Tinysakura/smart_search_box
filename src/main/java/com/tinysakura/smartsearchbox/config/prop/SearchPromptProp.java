@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Configuration;
  * @Date: 2019/5/10
  */
 @Data
-@Configuration
 public class SearchPromptProp {
     private Double behaviorRatio;
 
