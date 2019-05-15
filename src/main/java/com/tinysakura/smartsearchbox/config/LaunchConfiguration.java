@@ -31,55 +31,55 @@ public class LaunchConfiguration {
     /**
      * data
      */
-    @Value("smart_search_box.search_prompt.sensitive_word")
+    @Value("${smart_search_box.search_prompt.sensitive_word}")
     private String sensitiveWord;
 
-    @Value("smart_search_box.index_init.thread_pool.size")
+    @Value("${smart_search_box.index_init.thread_pool.size}")
     private String indexInitThreadPoolSize;
 
-    @Value("smart_search_box.document_index.thread_pool.size")
+    @Value("${smart_search_box.document_index.thread_pool.size}")
     private String documentIndexThreadPoolSize;
 
-    @Value("smart_search_box.index_query.highlight.pre_tags")
+    @Value("${smart_search_box.index_query.highlight.pre_tags}")
     private String highlightPreTags;
 
-    @Value("smart_search_box.index_query.highlight.post_tags")
+    @Value("${smart_search_box.index_query.highlight.post_tags}")
     private String highlightPostTags;
 
-    @Value("smart_search_box.index_query.default_analyzer")
+    @Value("${smart_search_box.index_query.default_analyzer}")
     private String defaultAnalyzer;
 
-    @Value("smart_search_box.document_index.async")
+    @Value("${smart_search_box.document_index.async}")
     private String async;
 
-    @Value("smart_search_box.annotation.document.scan.package")
+    @Value("${smart_search_box.annotation.document.scan.package}")
     private String documentAnnotationScanPath;
 
-    @Value("smart_search_box.annotation.index.scan.package")
+    @Value("${smart_search_box.annotation.index.scan.package}")
     private String indexAnnotationScanPath;
 
-    @Value("smart_search_box.index_query.document_type")
+    @Value("${smart_search_box.index_query.document_classes}")
     private String documentClasses;
 
-    @Value("smart_search_box.search_prompt.behavior.ratio")
+    @Value("${smart_search_box.search_prompt.behavior.ratio}")
     private String behaviorRatio;
 
-    @Value("smart_search_box.search_prompt.document.ratio")
+    @Value("${smart_search_box.search_prompt.document.ratio}")
     private String documentRatio;
 
-    @Value("smart_search_box.search_prompt.zset.capacity")
+    @Value("${smart_search_box.search_prompt.zset.capacity}")
     private String zSetCapacity;
 
-    @Value("smart_search_box.search_prompt.zset.cache_capacity")
+    @Value("${smart_search_box.search_prompt.zset.cache_capacity}")
     private String zSetCacheCapacity;
 
-    @Value("smart_search_box.search_prompt.behavior_zset.clean_up_interval")
+    @Value("${smart_search_box.search_prompt.behavior_zset.clean_up_interval}")
     private String behaviorZSetCleanUpInterval;
 
-    @Value("smart_search_box.search_prompt.highlight.pre_tags")
+    @Value("${smart_search_box.search_prompt.highlight.pre_tags}")
     private String preTags;
 
-    @Value("smart_search_box.search_prompt.highlight.post_tags")
+    @Value("${smart_search_box.search_prompt.highlight.post_tags}")
     private String postTags;
 
     @Resource(name = "jedisPool")
@@ -130,19 +130,11 @@ public class LaunchConfiguration {
 
     @Bean
     public Launch launch() {
-        Launch launch = new Launch();
+        Launch launch = new Launch(endPointProp(), indexInitProp(), searchPromptProp(), ikAnalyzerAdapter(), smartElkClientAdapter(), jedisClientAdapter(), redissonClient);
 
         AnalyzerService ikAnalyzerAdapter = ikAnalyzerAdapter();
         RedisClientService jedisClientAdapter = jedisClientAdapter();
         ElkClientService smartElkClientAdapter = smartElkClientAdapter();
-
-        launch.setAnalyzer(ikAnalyzerAdapter);
-        launch.setRedisClient(jedisClientAdapter);
-        launch.setElkClient(smartElkClientAdapter);
-        launch.setEndPointProp(endPointProp());
-        launch.setIndexProp(indexInitProp());
-        launch.setSearchPromptProp(searchPromptProp());
-        launch.setRedissonClient(redissonClient);
 
         return launch;
     }

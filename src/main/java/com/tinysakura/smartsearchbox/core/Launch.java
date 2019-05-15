@@ -116,7 +116,15 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
 
     private ExecutorService documentZsetCleanUpThreadPool;
 
-    public Launch() {
+    public Launch(EndPointProp endPointProp, IndexProp indexProp, SearchPromptProp searchPromptProp, AnalyzerService analyzerService, ElkClientService elkClientService, RedisClientService redisClientService, RedissonClient redissonClient) {
+        this.endPointProp = endPointProp;
+        this.indexProp = indexProp;
+        this.searchPromptProp = searchPromptProp;
+        this.analyzerService = analyzerService;
+        this.elkClientService = elkClientService;
+        this.redisClientService = redisClientService;
+        this.redissonClient = redissonClient;
+
         this.documentAddBlockingQueue = new LinkedBlockingQueue<>();
         this.indexInitBlockingQueue = new LinkedBlockingQueue<>();
         this.indexInitThreadPool = Executors.newFixedThreadPool(this.indexProp.getIndexInitThreadPoolSize());
@@ -125,7 +133,7 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
         this.documentZsetCleanUpThreadPool = Executors.newSingleThreadExecutor();
 
         documentAnnotationProcessor();
-        initSetKey();
+        // initSetKey();
         startIndexInitJob();
         startDocumentIndexJob();
         startBehaviorZSetCleanUpTimingTask();
@@ -136,14 +144,14 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
          * 初始化存放了所有document set的key值的set
          */
         if (!redisClientService.exists(DOCUMENT_SETS_KEYS_SET_KEY)) {
-            redisClientService.sAdd(DOCUMENT_SETS_KEYS_SET_KEY);
+            redisClientService.sAdd(DOCUMENT_SETS_KEYS_SET_KEY, null);
         }
 
         /**
          * 初始化存放了所有behavior set的key值的set
          */
         if (!redisClientService.exists(BEHAVIOR_SETS_KEYS_SET_KEY)) {
-            redisClientService.sAdd(BEHAVIOR_SETS_KEYS_SET_KEY);
+            redisClientService.sAdd(BEHAVIOR_SETS_KEYS_SET_KEY, null);
         }
     }
 
@@ -365,33 +373,5 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
         indexAnnotationProcessor();
 
         return null;
-    }
-
-    public void setAnalyzer(AnalyzerService analyzerService) {
-        this.analyzerService = analyzerService;
-    }
-
-    public void setElkClient(ElkClientService elkClientService) {
-        this.elkClientService = elkClientService;
-    }
-
-    public void setRedisClient(RedisClientService redisClientService) {
-        this.redisClientService = redisClientService;
-    }
-
-    public void setEndPointProp(EndPointProp endPointProp) {
-        this.endPointProp = endPointProp;
-    }
-
-    public void setIndexProp(IndexProp indexProp) {
-        this.indexProp = indexProp;
-    }
-
-    public void setSearchPromptProp(SearchPromptProp searchPromptProp) {
-        this.searchPromptProp = searchPromptProp;
-    }
-
-    public void setRedissonClient(RedissonClient redissonClient) {
-        this.redissonClient = redissonClient;
     }
 }
