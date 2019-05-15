@@ -6,6 +6,7 @@ import com.tinysakura.smartsearchbox.service.AnalyzerService;
 import com.tinysakura.smartsearchbox.service.ElkClientService;
 import com.tinysakura.smartsearchbox.service.RedisClientService;
 import com.tinysakura.smartsearchbox.util.StringUtil;
+import org.springframework.util.StringUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -42,20 +43,36 @@ public class DocumentIndexJob implements Runnable {
 
     @Override
     public void run() {
-        /**
-         * 索引文档
-         */
-        elkClientService.addDocument(documentAddCommand.getIndex(), documentAddCommand.getDocumentType(), documentAddCommand.getDocument());
-
-        /**
-         * 分词后建立zset
-         */
         Object document = documentAddCommand.getDocument();
         String[] searchPromptFields = documentAddCommand.getSearchPromptFields();
 
         Method[] methods = document.getClass().getDeclaredMethods();
         Map<String, Method> methodMap = Arrays.asList(methods).stream().collect(Collectors.toMap(e -> e.getName(), e -> e));
 
+        /**
+         * 索引文档
+         */
+        if (!StringUtils.isEmpty(documentAddCommand.getDocumentId())) {
+            /**
+             * 使用反射获取到id字段上的值
+             */
+            String methodName = "get" + StringUtil.toUpperCaseFirstOne(documentAddCommand.getDocumentId());
+            try {
+                Method method = methodMap.get(methodName);
+                if (method != null) {
+                    String documentId = method.invoke(documentAddCommand.getDocument()).toString();
+                    elkClientService.addDocument(documentAddCommand.getIndex(), documentAddCommand.getDocumentType(), documentId, documentAddCommand.getDocument());
+                }
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                e.printStackTrace();
+            }
+        } else {
+            elkClientService.addDocument(documentAddCommand.getIndex(), documentAddCommand.getDocumentType(), documentAddCommand.getDocument());
+        }
+
+        /**
+         * 分词后建立zset
+         */
         String documentSetKey = StringUtil.documentSetKey(documentAddCommand);
         String behaviorSetKey = StringUtil.behaviorSetKey(documentAddCommand.getIndex());
 

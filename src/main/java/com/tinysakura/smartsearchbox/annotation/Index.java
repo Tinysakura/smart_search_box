@@ -33,6 +33,12 @@ public @interface Index {
     public String documentType();
 
     /**
+     * 指定使用文档哪个字段上的值作为文档标识符
+     * @return
+     */
+    public String id() default "";
+
+    /**
      * 指定文档索引表达式，只有符合表达式要求的文档最终才会被索引
      * @return
      */

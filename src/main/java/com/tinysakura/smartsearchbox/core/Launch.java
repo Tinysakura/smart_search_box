@@ -228,17 +228,12 @@ public class Launch implements ApplicationContextAware {
                 /**
                  * 用附加的内部信息扩展索引结构
                  */
-                documentTypeBuilder.dynamic(documentAnnotation.dynamic()).extraAll(documentAnnotation.extraAll())
-                        .extraIndex(documentAnnotation.extraIndex()).extraSize(documentAnnotation.extraSize())
-                        .extraSoure(documentAnnotation.extraSource()).extraTimestamp(documentAnnotation.extraTimestamp())
-                        .extraType(documentAnnotation.extraType());
+                documentTypeBuilder.name(documentAnnotation.documentType()).dynamic(documentAnnotation.dynamic()).extraAll(documentAnnotation.extraAll())
+                        .extraSize(documentAnnotation.extraSize())
+                        .extraSoure(documentAnnotation.extraSource()).extraTimestamp(documentAnnotation.extraTimestamp());
 
                 if (!StringUtils.isEmpty(documentAnnotation.ttl())) {
                     documentTypeBuilder.extraTTL(documentAnnotation.ttl());
-                }
-
-                if (!StringUtils.isEmpty(documentAnnotation.id())) {
-                    documentTypeBuilder.extraId(documentAnnotation.id());
                 }
 
                 /**
@@ -269,17 +264,12 @@ public class Launch implements ApplicationContextAware {
      */
     private void fieldAnnotationProcessor(Class clazz, DocumentType.Builder documentTypeBuilder) {
         Field[] declaredFields = clazz.getDeclaredFields();
-        Properties.Builder propertiesBuilder = null;
 
         for (Field field : declaredFields) {
             com.tinysakura.smartsearchbox.annotation.Field fieldAnnotation = field.getDeclaredAnnotation(com.tinysakura.smartsearchbox.annotation.Field.class);
 
             if (fieldAnnotation != null) {
-                if (propertiesBuilder == null) {
-                    propertiesBuilder = new Properties.Builder();
-                }
-
-                propertiesBuilder.type(fieldAnnotation.type()).boost(fieldAnnotation.boost());
+                Properties.Builder propertiesBuilder = new Properties.Builder();
 
                 if (!StringUtils.isEmpty(fieldAnnotation.fieldName())) {
                     propertiesBuilder.name(fieldAnnotation.fieldName());
@@ -290,18 +280,18 @@ public class Launch implements ApplicationContextAware {
                     propertiesBuilder.name(field.getName());
                 }
 
+                propertiesBuilder.type(fieldAnnotation.type()).boost(fieldAnnotation.boost());
+
                 if (!StringUtils.isEmpty(fieldAnnotation.analyzer())) {
-                    propertiesBuilder.analyzer(fieldAnnotation.fieldName());
+                    propertiesBuilder.analyzer(fieldAnnotation.analyzer());
                 }
 
                 if (!StringUtils.isEmpty(fieldAnnotation.dateFormat())) {
                     propertiesBuilder.format(fieldAnnotation.dateFormat());
                 }
-            }
-        }
 
-        if (propertiesBuilder != null) {
-            documentTypeBuilder.properties(propertiesBuilder.build());
+                documentTypeBuilder.properties(propertiesBuilder.build());
+            }
         }
     }
 

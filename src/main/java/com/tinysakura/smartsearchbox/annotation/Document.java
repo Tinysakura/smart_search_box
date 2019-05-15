@@ -51,22 +51,10 @@ public @interface Document {
     public boolean dynamic() default true;
 
     /**
-     * 指定使用文档中的哪个字段作为文档唯一标识符
-     * @return
-     */
-    public String id() default "";
-
-    /**
      * 是否使用_all字段
      * @return
      */
     public boolean extraAll() default true;
-
-    /**
-     * 是否启用_index字段
-     * @return
-     */
-    public boolean extraIndex() default true;
 
     /**
      * 是否启用_size字段
@@ -85,12 +73,6 @@ public @interface Document {
      * @return
      */
     public boolean extraSource() default false;
-
-    /**
-     * 是否存储文档类型字段
-     * @return
-     */
-    public boolean extraType() default false;
 
     /**
      * 设置文档过期时间

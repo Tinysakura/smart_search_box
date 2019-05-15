@@ -15,7 +15,7 @@ import javax.persistence.*;
 @Entity
 @Table(name = "book")
 @EntityListeners(AuditingEntityListener.class)
-@Document(indexName = "Media", documentType = "Book", searchPromptFields = {"author", "title", "content"})
+@Document(indexName = "mediiiia", documentType = "boooook", searchPromptFields = {"author", "title", "content"})
 public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

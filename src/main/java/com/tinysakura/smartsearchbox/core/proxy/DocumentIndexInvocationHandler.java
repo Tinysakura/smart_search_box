@@ -114,6 +114,7 @@ public class DocumentIndexInvocationHandler<T> implements InvocationHandler {
                     DocumentAddCommand documentAddCommand = new DocumentAddCommand();
                     documentAddCommand.setIndex(indexAnnotation.index());
                     documentAddCommand.setDocumentType(indexAnnotation.documentType());
+                    documentAddCommand.setDocumentId(indexAnnotation.id());
                     documentAddCommand.setDocument(document);
                     documentAddCommand.setSearchPromptFields(indexAnnotation.searchPromptFields());
 
