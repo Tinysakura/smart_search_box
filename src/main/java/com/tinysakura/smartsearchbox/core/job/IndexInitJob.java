@@ -5,13 +5,14 @@ import com.tinysakura.smartsearchbox.core.Launch;
 import com.tinysakura.smartsearchbox.service.ElkClientService;
 import com.tinysakura.smartsearchbox.service.RedisClientService;
 import com.tinysakura.smartsearchbox.util.StringUtil;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 负责初始化索引的job
  * @Author: chenfeihao@corp.netease.com
  * @Date: 2019/5/13
  */
-
+@Slf4j
 public class IndexInitJob implements Runnable {
 
     private ElkClientService elkClientService;
@@ -33,6 +34,7 @@ public class IndexInitJob implements Runnable {
 
     @Override
     public void run() {
+        log.info("开始创建索引，command:{}", indexCreateCommand.toString());
         if (indexCreateCommand.getIndex() == null) {
             elkClientService.createIndex(indexCreateCommand.getIndexName());
         } else {

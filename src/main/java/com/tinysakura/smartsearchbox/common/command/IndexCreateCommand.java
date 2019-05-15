@@ -2,6 +2,7 @@ package com.tinysakura.smartsearchbox.common.command;
 
 import com.tinysakura.bean.index.Index;
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * 使用命令设计模式，封装创建索引命令
@@ -9,6 +10,7 @@ import lombok.Data;
  * @Date: 2019/5/11
  */
 @Data
+@ToString
 public class IndexCreateCommand {
     private String indexName;
 

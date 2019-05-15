@@ -49,7 +49,7 @@ import java.util.concurrent.*;
  * @Date: 2019/5/10
  */
 @Slf4j
-public class Launch implements ApplicationContextAware, BeanPostProcessor {
+public class Launch implements ApplicationContextAware {
     /**
      * data
      */
@@ -159,6 +159,7 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
      * 启动索引初始化任务
      */
     private void startIndexInitJob() {
+        log.info("启动索引初始化任务");
         while (!indexInitBlockingQueue.isEmpty()) {
             IndexCreateCommand indexCreateCommand = indexInitBlockingQueue.poll();
             IndexInitJob indexInitJob = new IndexInitJob(elkClientService, redisClientService, indexCreateCommand);
@@ -175,6 +176,7 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
      * 启动文档索引任务
      */
     private void startDocumentIndexJob() {
+        log.info("启动文档索引任务");
         new Thread(() -> {
             while (true) {
                 try {
@@ -191,6 +193,7 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
      * 启动清理用户行为对应的zset的定时任务
      */
     private void startBehaviorZSetCleanUpTimingTask() {
+        log.info("启动清理用户行为对应的zset的定时任务");
         UserBehaviorZSetCleanUpJob job = new UserBehaviorZSetCleanUpJob(redisClientService, searchPromptProp.getZSetCapacity(), searchPromptProp.getZSetCacheCapacity());
         behaviorZsetCleanUpThreadPool.scheduleAtFixedRate(job, 1000 * 60 * 60 * 20, searchPromptProp.getBehaviorZSetCleanUpInterval(), TimeUnit.MILLISECONDS);
     }
@@ -199,6 +202,7 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
      * 启动清理文档对应的zset的定时任务
      */
     public void startDocumentZsetCleanUpTimingTask() {
+        log.info("启动清理文档对应的zset的定时任务");
         DocumentZSetCleanUpJob job = new DocumentZSetCleanUpJob(elkClientService, redisClientService, searchPromptProp.getZSetCapacity(), searchPromptProp.getZSetCacheCapacity(), indexProp.getDefaultAnalyzer(), redissonClient);
         documentZsetCleanUpThreadPool.submit(job);
     }
@@ -304,7 +308,7 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
     /**
      * 处理@Index注解
      */
-    private void indexAnnotationProcessor() {
+    public void indexAnnotationProcessor() {
         this.daoClassesSet = ReflectUtil.getClasses(indexProp.getIndexAnnotationScanPath(), false);
 
         for (Class clazz : daoClassesSet) {
@@ -330,7 +334,7 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
                     /**
                      * 删除旧的bean使用被修饰过的bean进行替换
                      */
-                    dynamicInjectBean(proxyInstance, target.getClass(), indexAnnotation.beanName());
+                    dynamicInjectBean(proxyInstance, clazz.getSimpleName());
                 }
             }
         }
@@ -341,37 +345,22 @@ public class Launch implements ApplicationContextAware, BeanPostProcessor {
      * 向ioc容器动态注入bean
      * @param bean
      */
-    private void dynamicInjectBean(Object bean, Class clazz, String beanName) {
+    private void dynamicInjectBean(Object bean, String beanName) {
         DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) applicationContext.getAutowireCapableBeanFactory();
 
-        if (StringUtils.isEmpty(beanName)) {
+        if (!StringUtils.isEmpty(beanName)) {
             /**
              * bean name为空时默认使用类名开头转小写作为bean name
              */
-            beanName = StringUtil.toLowerCaseFirstOne(clazz.getSimpleName());
+            beanName = StringUtil.toLowerCaseFirstOne(beanName);
         }
 
-        beanFactory.removeBeanDefinition(beanName);
-        applicationContext.getAutowireCapableBeanFactory().applyBeanPostProcessorsAfterInitialization(bean, clazz.getName());
-        beanFactory.registerSingleton(clazz.getName(), bean);
+        beanFactory.destroySingleton(beanName);
+        beanFactory.registerSingleton(beanName, bean);
     }
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
-    }
-
-    /**
-     * bean初始化完成后的回调
-     * @param bean
-     * @param beanName
-     * @return
-     * @throws BeansException
-     */
-    @Override
-    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-        indexAnnotationProcessor();
-
-        return null;
     }
 }
