@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
  * @Date: 2019/5/14
  */
 @Configuration
-public class RedissionConfig {
+public class RedissionConfiguration {
     @Value("${jedis.pool.host}")
     private String host;
 

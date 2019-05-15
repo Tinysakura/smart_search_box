@@ -14,18 +14,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class EndPointProp {
 
-    @Value("smart_search_box.search_prompt.sensitive_word")
     private String sensitiveWord;
 
     private String[] sensitiveWords;
-
-    @Bean
-    public EndPointProp endPointProp() {
-        EndPointProp endPointProp = new EndPointProp();
-        endPointProp.setSensitiveWord(this.sensitiveWord);
-        String[] splits = sensitiveWord.split(",");
-        endPointProp.setSensitiveWords(splits);
-
-        return endPointProp;
-    }
 }

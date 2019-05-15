@@ -13,38 +13,17 @@ import org.springframework.context.annotation.Configuration;
 @Data
 @Configuration
 public class SearchPromptProp {
-    @Value("smart_search_box.search_prompt.behavior.ratio")
     private Double behaviorRatio;
 
-    @Value("smart_search_box.search_prompt.document.ratio")
     private Double documentRatio;
 
-    @Value("smart_search_box.search_prompt.zset.capacity")
     private Long zSetCapacity;
 
-    @Value("smart_search_box.search_prompt.zset.cache_capacity")
     private Long zSetCacheCapacity;
 
-    @Value("smart_search_box.search_prompt.behavior_zset.clean_up_interval")
     private Long behaviorZSetCleanUpInterval;
 
-    @Value("smart_search_box.search_prompt.highlight.pre_tags")
     private String preTags;
 
-    @Value("smart_search_box.search_prompt.highlight.post_tags")
     private String postTags;
-
-    @Bean
-    public SearchPromptProp searchPromptProp() {
-        SearchPromptProp searchPromptProp = new SearchPromptProp();
-        searchPromptProp.setBehaviorRatio(this.behaviorRatio);
-        searchPromptProp.setDocumentRatio(this.documentRatio);
-        searchPromptProp.setZSetCapacity(this.zSetCapacity);
-        searchPromptProp.setZSetCacheCapacity(this.zSetCacheCapacity);
-        searchPromptProp.setBehaviorZSetCleanUpInterval(this.behaviorZSetCleanUpInterval);
-        searchPromptProp.setPreTags(this.preTags);
-        searchPromptProp.setPostTags(this.postTags);
-
-        return searchPromptProp;
-    }
 }
