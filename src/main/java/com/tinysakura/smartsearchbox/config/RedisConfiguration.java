@@ -25,7 +25,7 @@ public class RedisConfiguration {
     @Bean(name = "jedisPoolConfig")
     public JedisPoolConfig jedisPoolConfig(@Value("${jedis.pool.config.maxTotal}") int maxTotal,
                                            @Value("${jedis.pool.config.maxIdle}") int maxIdle,
-                                           @Value("${jedis.pool.config.maxWaitMillis}") int maxWaitMillis) {
+                                           @Value("${jedis.pool.config.maxWaitMill}") int maxWaitMillis) {
         JedisPoolConfig config = new JedisPoolConfig();
         config.setMaxTotal(maxTotal);
         config.setMaxIdle(maxIdle);

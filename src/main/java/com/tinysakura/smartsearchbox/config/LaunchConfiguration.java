@@ -35,10 +35,10 @@ public class LaunchConfiguration {
     private String sensitiveWord;
 
     @Value("smart_search_box.index_init.thread_pool.size")
-    private Integer indexInitThreadPoolSize;
+    private String indexInitThreadPoolSize;
 
     @Value("smart_search_box.document_index.thread_pool.size")
-    private Integer documentIndexThreadPoolSize;
+    private String documentIndexThreadPoolSize;
 
     @Value("smart_search_box.index_query.highlight.pre_tags")
     private String highlightPreTags;
@@ -62,19 +62,19 @@ public class LaunchConfiguration {
     private String documentClasses;
 
     @Value("smart_search_box.search_prompt.behavior.ratio")
-    private Double behaviorRatio;
+    private String behaviorRatio;
 
     @Value("smart_search_box.search_prompt.document.ratio")
-    private Double documentRatio;
+    private String documentRatio;
 
     @Value("smart_search_box.search_prompt.zset.capacity")
-    private Long zSetCapacity;
+    private String zSetCapacity;
 
     @Value("smart_search_box.search_prompt.zset.cache_capacity")
-    private Long zSetCacheCapacity;
+    private String zSetCacheCapacity;
 
     @Value("smart_search_box.search_prompt.behavior_zset.clean_up_interval")
-    private Long behaviorZSetCleanUpInterval;
+    private String behaviorZSetCleanUpInterval;
 
     @Value("smart_search_box.search_prompt.highlight.pre_tags")
     private String preTags;
@@ -101,8 +101,8 @@ public class LaunchConfiguration {
     @Bean
     public IndexProp indexInitProp() {
         IndexProp indexProp = new IndexProp();
-        indexProp.setIndexInitThreadPoolSize(this.indexInitThreadPoolSize);
-        indexProp.setDocumentIndexThreadPoolSize(this.documentIndexThreadPoolSize);
+        indexProp.setIndexInitThreadPoolSize(new Integer(this.indexInitThreadPoolSize));
+        indexProp.setDocumentIndexThreadPoolSize(new Integer(this.documentIndexThreadPoolSize));
         indexProp.setDefaultAnalyzer(this.defaultAnalyzer);
         indexProp.setHighlightPreTags(this.highlightPreTags);
         indexProp.setHighlightPostTags(this.highlightPostTags);
@@ -117,11 +117,11 @@ public class LaunchConfiguration {
     @Bean
     public SearchPromptProp searchPromptProp() {
         SearchPromptProp searchPromptProp = new SearchPromptProp();
-        searchPromptProp.setBehaviorRatio(this.behaviorRatio);
-        searchPromptProp.setDocumentRatio(this.documentRatio);
-        searchPromptProp.setZSetCapacity(this.zSetCapacity);
-        searchPromptProp.setZSetCacheCapacity(this.zSetCacheCapacity);
-        searchPromptProp.setBehaviorZSetCleanUpInterval(this.behaviorZSetCleanUpInterval);
+        searchPromptProp.setBehaviorRatio(new Double(this.behaviorRatio));
+        searchPromptProp.setDocumentRatio(new Double(this.documentRatio));
+        searchPromptProp.setZSetCapacity(new Long(this.zSetCapacity));
+        searchPromptProp.setZSetCacheCapacity(new Long(this.zSetCacheCapacity));
+        searchPromptProp.setBehaviorZSetCleanUpInterval(new Long(this.behaviorZSetCleanUpInterval));
         searchPromptProp.setPreTags(this.preTags);
         searchPromptProp.setPostTags(this.postTags);
 
