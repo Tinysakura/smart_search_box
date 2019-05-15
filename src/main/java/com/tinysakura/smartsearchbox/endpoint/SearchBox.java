@@ -17,6 +17,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -60,7 +61,7 @@ public class SearchBox {
                                                  @RequestParam("keyword") String keyword,
                                                  @RequestParam("index") Integer index,
                                                  @RequestParam("size") Integer size) {
-        Set<String> result = searchPromptResult(indexName, keyword, index, size);
+        Set<String> result = searchPromptResult(indexName, keyword, index, size, searchPromptProp.getPreTags(), searchPromptProp.getPostTags());
         zSetScoreIncr(keyword, indexName);
         return wrap(index, size, result);
     }
@@ -79,7 +80,7 @@ public class SearchBox {
                                                      @RequestParam("keyword") String keyword,
                                                      @RequestParam("index") Integer index,
                                                      @RequestParam("size") Integer size) {
-        Set<String> result = searchPromptResult(indexName, keyword, index, size);
+        Set<String> result = searchPromptResult(indexName, keyword, index, size, searchPromptProp.getPreTags(), searchPromptProp.getPostTags());
         zSetScoreIncr(keyword, indexName);
         return wrap(index, size, result);
     }
@@ -127,7 +128,7 @@ public class SearchBox {
         return responseView;
     }
 
-    private Set<String> searchPromptResult(String indexName, String keyword, Integer index, Integer size) {
+    private Set<String> searchPromptResult(String indexName, String keyword, Integer index, Integer size, String preTags, String postTags) {
         Integer from = -1 - (index - 1) * size * 2;
         String documentZsetKey = StringUtil.documentZSetKey(indexName, keyword);
         String behaviorZsetKey = StringUtil.behaviorZSetKey(indexName, keyword);
@@ -141,13 +142,27 @@ public class SearchBox {
         // help gc
         documentPrompt =  null;
         behaviorPrompt = null;
-        Set<String> result = new HashSet<>();
+        Set<String> results = new HashSet<>();
 
         for (int i = 0; i < tmp.length; i += 2) {
-            result.add(tmp[i]);
+            results.add(tmp[i]);
         }
 
-        return result;
+        /**
+         * 高亮
+         */
+        String[] analyzers = analyzerService.analyzer(keyword);
+
+        List<String> analyzerList = Arrays.asList(analyzers);
+        analyzerList.sort((e1, e2) -> {return e2.length() - e1.length();});
+
+        for (String analyzer : analyzerList) {
+            for (String result : results) {
+                result.replaceAll(analyzer, preTags.concat(analyzer).concat(postTags));
+            }
+        }
+
+        return results;
     }
 
     private PaginationResponseView wrap(Integer index, Integer size, Object result) {
