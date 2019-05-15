@@ -50,7 +50,7 @@ public class LaunchConfiguration {
     private String defaultAnalyzer;
 
     @Value("smart_search_box.document_index.async")
-    private boolean async;
+    private String async;
 
     @Value("smart_search_box.annotation.document.scan.package")
     private String documentAnnotationScanPath;
@@ -106,7 +106,7 @@ public class LaunchConfiguration {
         indexProp.setDefaultAnalyzer(this.defaultAnalyzer);
         indexProp.setHighlightPreTags(this.highlightPreTags);
         indexProp.setHighlightPostTags(this.highlightPostTags);
-        indexProp.setAsync(this.async);
+        indexProp.setAsync(new Boolean(this.async));
         indexProp.setDocumentAnnotationScanPath(this.documentAnnotationScanPath);
         indexProp.setIndexAnnotationScanPath(this.indexAnnotationScanPath);
         indexProp.setClasses(this.documentClasses.split(","));
