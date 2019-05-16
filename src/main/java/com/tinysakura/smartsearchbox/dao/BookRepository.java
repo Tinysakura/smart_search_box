@@ -11,7 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface BookRepository extends JpaRepository<Book, Long> {
 
-    @Index(index = "Media", documentType = "Book", searchPromptFields = {"author", "title", "content"})
+    @Index(index = "mediiiia", documentType = "boooook", searchPromptFields = {"author", "title", "content"})
     @Override
     <S extends Book> S save(S s);
 }
