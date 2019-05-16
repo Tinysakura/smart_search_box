@@ -55,7 +55,7 @@ public class StringUtil {
     public static String[] extractFieldsFromKey(String key) {
         String[] splits = key.split("_");
 
-        return Arrays.copyOfRange(splits, 1, splits.length);
+        return Arrays.copyOfRange(splits, 2, splits.length);
     }
 
     /**
