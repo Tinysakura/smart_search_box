@@ -1,6 +1,7 @@
 package com.tinysakura.smartsearchbox.common.command;
 
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * 使用命令设计模式，封装索引文档命令
@@ -8,6 +9,7 @@ import lombok.Data;
  * @Date: 2019/5/11
  */
 @Data
+@ToString
 public class DocumentAddCommand {
     String index;
 

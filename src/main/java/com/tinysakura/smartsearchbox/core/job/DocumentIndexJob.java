@@ -6,6 +6,7 @@ import com.tinysakura.smartsearchbox.service.AnalyzerService;
 import com.tinysakura.smartsearchbox.service.ElkClientService;
 import com.tinysakura.smartsearchbox.service.RedisClientService;
 import com.tinysakura.smartsearchbox.util.StringUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.InvocationTargetException;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
  * @Date: 2019/5/13
  */
 @SuppressWarnings("ALL")
+@Slf4j
 public class DocumentIndexJob implements Runnable {
     private ElkClientService elkClientService;
 
@@ -43,6 +45,7 @@ public class DocumentIndexJob implements Runnable {
 
     @Override
     public void run() {
+        log.info("开始索引文档，command:{}", documentAddCommand.toString());
         Object document = documentAddCommand.getDocument();
         String[] searchPromptFields = documentAddCommand.getSearchPromptFields();
 
