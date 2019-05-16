@@ -9,6 +9,8 @@ import com.tinysakura.smartsearchbox.util.StringUtil;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -51,39 +53,50 @@ public class DocumentZSetCleanUpJob implements Runnable {
 
         boolean lock = rLock.tryLock();
         if (lock) {
-            /**
-             * 从三级存储结构的最上层取出所有文档相关的set keys
-             * keyFormat : {索引名}_{文档类型set后缀}_{搜索提示字段1}_{搜索提示字段2}...
-             */
-            Set<String> documentSetKeys = redisClientService.sMembers(Launch.DOCUMENT_SETS_KEYS_SET_KEY);
-
-            for (String documentSetKey : documentSetKeys) {
-                String index = StringUtil.extractIndexNameFromKey(documentSetKey);
-                String[] fields = StringUtil.extractFieldsFromKey(documentSetKey);
-
+            try {
                 /**
-                 * 根据文档得分重排序zset
+                 * 从三级存储结构的最上层取出所有文档相关的set keys
+                 * keyFormat : {索引名}_{文档类型set后缀}_{搜索提示字段1}_{搜索提示字段2}...
                  */
-                Set<String> zSetKeys = redisClientService.sMembers(documentSetKey);
+                Set<String> documentSetKeys = redisClientService.sMembers(Launch.DOCUMENT_SETS_KEYS_SET_KEY);
 
-                for (String zSetKey : zSetKeys) {
-                    redisClientService.del(zSetKey);
+                for (String documentSetKey : documentSetKeys) {
+                    String index = StringUtil.extractIndexNameFromKey(documentSetKey);
+                    String[] fields = StringUtil.extractFieldsFromKey(documentSetKey);
 
-                    QueryResponse queryResponse = elkClientService.multiMatchQuery(index, null, fields, zSetKey, analyzer, 0, new Long(zSetCapacity + zSetCacheCapacity).intValue());
-                    Hit[] hits = queryResponse.getHits().getHits();
+                    /**
+                     * 根据文档得分重排序zset
+                     */
+                    Set<String> zSetKeys = redisClientService.sMembers(documentSetKey);
 
-                    for (Hit hit : hits) {
-                        if (hit.get_source() != null) {
-                            for (String field : fields) {
-                                redisClientService.zAdd(zSetKey, String.valueOf(hit.get_source().get(field)), hit.get_score().doubleValue());
-                            }
-                        } else {
-                            for (String field : fields) {
-                                redisClientService.zAdd(zSetKey, String.valueOf(hit.getFields().get(field)[0]), hit.get_score().doubleValue());
+                    for (String zSetKey : zSetKeys) {
+                        redisClientService.del(zSetKey);
+                        String keyWord = StringUtil.extractKeywordFromDocumentZSetKey(zSetKey);
+
+                        Map<String, Object> fieldMap = new HashMap<>(fields.length);
+
+                        for (String field : fields) {
+                            fieldMap.put(field, keyWord);
+                        }
+
+                        QueryResponse queryResponse = elkClientService.luceneQuery(index, null, fieldMap, 0, new Long(zSetCapacity + zSetCacheCapacity).intValue());
+                        Hit[] hits = queryResponse.getHits().getHits();
+
+                        for (Hit hit : hits) {
+                            if (hit.get_source() != null) {
+                                for (String field : fields) {
+                                    redisClientService.zAdd(zSetKey, String.valueOf(hit.get_source().get(field)), hit.get_score().doubleValue());
+                                }
+                            } else {
+                                for (String field : fields) {
+                                    redisClientService.zAdd(zSetKey, String.valueOf(hit.getFields().get(field)[0]), hit.get_score().doubleValue());
+                                }
                             }
                         }
                     }
                 }
+            } finally {
+                rLock.unlock();
             }
         }
     }

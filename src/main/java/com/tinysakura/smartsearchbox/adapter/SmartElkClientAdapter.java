@@ -197,6 +197,35 @@ public class SmartElkClientAdapter implements ElkClientService {
     }
 
     @Override
+    public QueryResponse luceneQuery(String index, String documentType, Map<String, Object> fields, Integer pageIndex, Integer pageSize) {
+        QueryBody.Builder queryBodyBuilder = new QueryBody.Builder();
+        LuceneQuery.Builder luceneQueryBuilder = new LuceneQuery.Builder();
+
+        StringBuilder sb = new StringBuilder();
+        for (String field : fields.keySet()) {
+            sb.append(field).append(":").append(fields.get(field).toString());
+        }
+
+        LuceneQuery luceneQuery = luceneQueryBuilder.query(sb.toString()).build();
+
+        queryBodyBuilder.query(luceneQuery.getQuery()).from((pageIndex - 1) * pageSize).size(pageSize).build();
+        QueryBody queryBody = queryBodyBuilder.build();
+
+        QueryResponse[] result = new QueryResponse[1];
+
+        /**
+         * 当出现异常时返回null
+         */
+        if (StringUtils.isEmpty(documentType)) {
+            queryService.search(index, queryBody.getQueryBody()).doOnError(throwable -> result[0] = null).subscribe(queryResponse -> result[0] = queryResponse);
+        } else {
+            queryService.search(index, documentType, queryBody.getQueryBody()).doOnError(throwable -> result[0] = null).subscribe(queryResponse -> result[0] = queryResponse);
+        }
+
+        return result[0];
+    }
+
+    @Override
     public DocumentScore idsQuery(String index, String documentType, String id, Integer pageIndex, Integer pageSize, Class clazz) {
         return idsQuery(index, documentType, id, pageIndex, pageSize, clazz, null, null);
     }

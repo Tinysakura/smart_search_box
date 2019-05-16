@@ -106,6 +106,8 @@ public interface ElkClientService {
 
     List<DocumentScore> luceneQuery(String index, String documentType, Map<String, Object> fields, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags);
 
+    QueryResponse luceneQuery(String index, String documentType, Map<String, Object> fields, Integer pageIndex, Integer pageSize);
+
     /**
      * 文档标识符查询
      * @param index
