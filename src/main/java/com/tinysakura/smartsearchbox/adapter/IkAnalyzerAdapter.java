@@ -31,10 +31,11 @@ public class IkAnalyzerAdapter implements AnalyzerService {
     public String[] analyzer(String originalText) {
         StringReader reader=new StringReader(originalText);
         List<String> results = new ArrayList<>();
+        TokenStream ts = null;
 
         //分词
         try {
-            TokenStream ts=analyzer.tokenStream("", reader);
+            ts=analyzer.tokenStream("", reader);
             CharTermAttribute term=ts.getAttribute(CharTermAttribute.class);
             //遍历分词数据
             while(ts.incrementToken()){
@@ -44,6 +45,12 @@ public class IkAnalyzerAdapter implements AnalyzerService {
             e.printStackTrace();
         } finally {
             reader.close();
+            try {
+                assert ts != null;
+                ts.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         return results.toArray(new String[]{});

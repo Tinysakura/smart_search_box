@@ -1,5 +1,6 @@
 package com.tinysakura.smartsearchbox.config;
 
+import com.tinysakura.smartsearchbox.adapter.AnsjAnalyzerAdapter;
 import com.tinysakura.smartsearchbox.adapter.IkAnalyzerAdapter;
 import com.tinysakura.smartsearchbox.adapter.JedisClientAdapter;
 import com.tinysakura.smartsearchbox.adapter.SmartElkClientAdapter;
@@ -130,20 +131,23 @@ public class LaunchConfiguration {
 
     @Bean
     public Launch launch() {
-        Launch launch = new Launch(endPointProp(), indexInitProp(), searchPromptProp(), ikAnalyzerAdapter(), smartElkClientAdapter(), jedisClientAdapter(), redissonClient);
-
-        AnalyzerService ikAnalyzerAdapter = ikAnalyzerAdapter();
-        RedisClientService jedisClientAdapter = jedisClientAdapter();
-        ElkClientService smartElkClientAdapter = smartElkClientAdapter();
+        Launch launch = new Launch(endPointProp(), indexInitProp(), searchPromptProp(), ansjAnalyzerAdapter(), smartElkClientAdapter(), jedisClientAdapter(), redissonClient);
 
         return launch;
     }
 
-    @Bean
-    public AnalyzerService ikAnalyzerAdapter() {
-        IkAnalyzerAdapter ikAnalyzerAdapter = new IkAnalyzerAdapter(false);
+//    @Bean
+//    public AnalyzerService ikAnalyzerAdapter() {
+//        IkAnalyzerAdapter ikAnalyzerAdapter = new IkAnalyzerAdapter(false);
+//
+//        return ikAnalyzerAdapter;
+//    }
 
-        return ikAnalyzerAdapter;
+    @Bean
+    public AnalyzerService  ansjAnalyzerAdapter() {
+        AnsjAnalyzerAdapter ansjAnalyzerAdapter = new AnsjAnalyzerAdapter();
+
+        return ansjAnalyzerAdapter;
     }
 
     @Bean

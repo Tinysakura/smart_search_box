@@ -127,7 +127,7 @@ public class DocumentIndexInvocationHandler<T> implements InvocationHandler {
                         try {
                             Method getMethod = methodMap.get(methodName);
                             if (method != null) {
-                                Object value = method.invoke(document);
+                                Object value = getMethod.invoke(document);
 
                                 String[] analyzerResults = analyzerService.analyzer(value.toString());
 
