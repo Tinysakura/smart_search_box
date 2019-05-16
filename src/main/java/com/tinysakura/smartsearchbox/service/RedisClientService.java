@@ -48,12 +48,21 @@ public interface RedisClientService {
     void zAdd(String key, String value, Double score);
 
     /**
-     * 返回集合指定区间的元素
+     * 按score升序返回集合指定区间的元素
      * @param key
      * @param from
      * @param to
      */
     Set<String> zRange(String key, Integer from, Integer to);
+
+    /**
+     * 按score降序返回指定区间的元素
+     * @param key
+     * @param from
+     * @param to
+     * @return
+     */
+    Set<String> zrevRange(String key, Integer from, Integer to);
 
     /**
      * 返回集合中指定分数区间的元素

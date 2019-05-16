@@ -17,10 +17,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @Author: chenfeihao@corp.netease.com
@@ -62,7 +59,6 @@ public class SearchBox {
                                                  @RequestParam("index") Integer index,
                                                  @RequestParam("size") Integer size) {
         Set<String> result = searchPromptResult(indexName, keyword, index, size, searchPromptProp.getPreTags(), searchPromptProp.getPostTags());
-        zSetScoreIncr(keyword, indexName);
         return wrap(index, size, result);
     }
 
@@ -74,13 +70,12 @@ public class SearchBox {
      * @param size
      * @return
      */
-    @RequestMapping("/search_box/{index}/search_prompt")
-    public PaginationResponseView searchPrompt(@PathVariable("index") String indexName,
-                                                     @RequestParam("keyword") String keyword,
-                                                     @RequestParam("index") Integer index,
-                                                     @RequestParam("size") Integer size) {
+    @RequestMapping(value = "/searchBox/{indexName}/searchPrompt", method = RequestMethod.GET)
+    public PaginationResponseView searchPrompt(@PathVariable("indexName") String indexName,
+                                                     @RequestParam(name = "keyword") String keyword,
+                                                     @RequestParam(name = "index") Integer index,
+                                                     @RequestParam(name = "size") Integer size) {
         Set<String> result = searchPromptResult(indexName, keyword, index, size, searchPromptProp.getPreTags(), searchPromptProp.getPostTags());
-        zSetScoreIncr(keyword, indexName);
         return wrap(index, size, result);
     }
 
@@ -109,6 +104,8 @@ public class SearchBox {
         }
         List<DocumentScore> documentList = elkClientService.multiMatchQuery(indexName, null, fields, keyword, indexProp.getDefaultAnalyzer(), index, size, clazz, indexProp.getHighlightPreTags(), indexProp.getHighlightPostTags());
 
+        // 更新用户搜索行为对应zset
+        zSetScoreIncr(keyword, indexName);
         return wrap(index, size, documentList);
     }
 
@@ -128,14 +125,14 @@ public class SearchBox {
     }
 
     private Set<String> searchPromptResult(String indexName, String keyword, Integer index, Integer size, String preTags, String postTags) {
-        Integer from = -1 - (index - 1) * size * 2;
+        Integer from = (index - 1) * size;
         String documentZsetKey = StringUtil.documentZSetKey(indexName, keyword);
         String behaviorZsetKey = StringUtil.behaviorZSetKey(indexName, keyword);
-        Integer dTo = from - 2 * new Long(Math.round(searchPromptProp.getDocumentRatio() * size)).intValue();
-        Integer bTo = from - 2 * new Long(Math.round(searchPromptProp.getBehaviorRatio() * size)).intValue();
+        Integer dTo = from + new Long(Math.round(searchPromptProp.getDocumentRatio() * size)).intValue();
+        Integer bTo = from + new Long(Math.round(searchPromptProp.getBehaviorRatio() * size)).intValue();
 
-        Set<String> documentPrompt = redisClientService.zRange(documentZsetKey, from, dTo);
-        Set<String> behaviorPrompt = redisClientService.zRange(behaviorZsetKey, from, bTo);
+        Set<String> documentPrompt = redisClientService.zrevRange(documentZsetKey, from, dTo);
+        Set<String> behaviorPrompt = redisClientService.zrevRange(behaviorZsetKey, from, bTo);
         documentPrompt.addAll(behaviorPrompt);
         String[] tmp = documentPrompt.toArray(new String[]{});
         // help gc
@@ -153,15 +150,17 @@ public class SearchBox {
         String[] analyzers = analyzerService.analyzer(keyword);
 
         List<String> analyzerList = Arrays.asList(analyzers);
-        analyzerList.sort((e1, e2) -> {return e2.length() - e1.length();});
+        analyzerList.sort(Comparator.comparingInt(String::length));
+
+        Set<String> highlightResults = new HashSet<>();
 
         for (String analyzer : analyzerList) {
             for (String result : results) {
-                result.replaceAll(analyzer, preTags.concat(analyzer).concat(postTags));
+                highlightResults.add(result.replaceAll(analyzer, preTags.concat(analyzer).concat(postTags)));
             }
         }
 
-        return results;
+        return highlightResults;
     }
 
     private PaginationResponseView wrap(Integer index, Integer size, Object result) {

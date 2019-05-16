@@ -97,6 +97,21 @@ public class JedisClientAdapter implements RedisClientService {
     }
 
     @Override
+    public Set<String> zrevRange(String key, Integer from, Integer to) {
+        Jedis jedis = null;
+
+        try {
+            jedis = jedisPool.getResource();
+            Set<String> set = jedis.zrevrange(key, from, to);
+
+            return set;
+        } finally {
+            //返还到连接池
+            jedis.close();
+        }
+    }
+
+    @Override
     public Set<String> zRangeByScore(String key, Double from, Double to) {
         Jedis jedis = null;
 
