@@ -16,7 +16,7 @@ import java.util.List;
  * @Author: chenfeihao@corp.netease.com
  * @Date: 2019/5/11
  */
-
+@Deprecated
 public class IkAnalyzerAdapter implements AnalyzerService {
     Analyzer analyzer;
 
