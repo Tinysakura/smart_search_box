@@ -7,6 +7,7 @@ import com.tinysakura.smartsearchbox.service.ElkClientService;
 import com.tinysakura.smartsearchbox.service.RedisClientService;
 import com.tinysakura.smartsearchbox.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -81,6 +82,7 @@ public class DocumentIndexInvocationHandler<T> implements InvocationHandler {
                     documentAddCommand.setIndex(indexAnnotation.index());
                     documentAddCommand.setDocumentType(indexAnnotation.documentType());
                     documentAddCommand.setDocument(document);
+                    documentAddCommand.setDocumentId(indexAnnotation.id());
                     documentAddCommand.setSearchPromptFields(indexAnnotation.searchPromptFields());
 
                     try {
@@ -101,8 +103,6 @@ public class DocumentIndexInvocationHandler<T> implements InvocationHandler {
                 try {
                     Object document = method.invoke(target, args);
 
-                    elkClientService.addDocument(indexAnnotation.index(), indexAnnotation.documentType(), document);
-
                     /**
                      * 分词后建立zset
                      */
@@ -117,6 +117,27 @@ public class DocumentIndexInvocationHandler<T> implements InvocationHandler {
                     documentAddCommand.setDocumentId(indexAnnotation.id());
                     documentAddCommand.setDocument(document);
                     documentAddCommand.setSearchPromptFields(indexAnnotation.searchPromptFields());
+
+                    /**
+                     * 索引文档
+                     */
+                    if (!StringUtils.isEmpty(documentAddCommand.getDocumentId())) {
+                        /**
+                         * 使用反射获取到id字段上的值
+                         */
+                        String methodName = "get" + StringUtil.toUpperCaseFirstOne(documentAddCommand.getDocumentId());
+                        try {
+                            Method getMethod = methodMap.get(methodName);
+                            if (getMethod != null) {
+                                String documentId = getMethod.invoke(documentAddCommand.getDocument()).toString();
+                                elkClientService.addDocument(documentAddCommand.getIndex(), documentAddCommand.getDocumentType(), documentId, documentAddCommand.getDocument());
+                            }
+                        } catch (IllegalAccessException | InvocationTargetException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        elkClientService.addDocument(documentAddCommand.getIndex(), documentAddCommand.getDocumentType(), documentAddCommand.getDocument());
+                    }
 
                     String documentSetKey = StringUtil.documentSetKey(documentAddCommand);
                     String behaviorSetKey = StringUtil.behaviorSetKey(documentAddCommand.getIndex());

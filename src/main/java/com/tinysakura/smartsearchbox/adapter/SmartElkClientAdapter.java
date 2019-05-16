@@ -17,6 +17,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 使用个人开源项目smart_elk_client{guthub@https://github.com/Tinysakura/smart_elk_client}作为elastic search java客户端
@@ -161,6 +162,29 @@ public class SmartElkClientAdapter implements ElkClientService {
         MultiMatchQuery.Builder multiMatchQueryBuilder = new MultiMatchQuery.Builder();
         MultiMatchQuery multiMatchQuery = multiMatchQueryBuilder.query(text).fields(fields).analyzer(analyzer).build();
         queryBodyBuilder.query(multiMatchQuery.getQuery()).from((pageIndex - 1) * pageSize).size(pageSize).build();
+
+        if (preTags != null && postTags != null) {
+            HighLightQuery.Builder highlightQueryBuilder = new HighLightQuery.Builder();
+            HighLightQuery highLightQuery = highlightQueryBuilder.globalPreTags(new String[]{preTags}).gloabalPostTags(new String[]{postTags}).build();
+            queryBodyBuilder.highlight(highLightQuery.getHighLightEntry());
+        }
+
+        QueryBody queryBody = queryBodyBuilder.build();
+        return commonQuery(index, documentType, queryBody, clazz);
+    }
+
+    @Override
+    public List<DocumentScore> luceneQuery(String index, String documentType, Map<String, Object> fields, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags) {
+        QueryBody.Builder queryBodyBuilder = new QueryBody.Builder();
+        LuceneQuery.Builder luceneQueryBuilder = new LuceneQuery.Builder();
+
+        StringBuilder sb = new StringBuilder();
+        for (String field : fields.keySet()) {
+            sb.append(field).append(":").append(fields.get(field).toString());
+        }
+
+        LuceneQuery luceneQuery = luceneQueryBuilder.query(sb.toString()).build();
+        queryBodyBuilder.query(luceneQuery.getQuery()).from((pageIndex - 1) * pageSize).size(pageSize).build();
 
         if (preTags != null && postTags != null) {
             HighLightQuery.Builder highlightQueryBuilder = new HighLightQuery.Builder();

@@ -6,6 +6,7 @@ import com.tinysakura.bean.query.result.QueryResponse;
 import com.tinysakura.smartsearchbox.common.entity.DocumentScore;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 项目需要用到的elastic search java客户端提供的服务接口
@@ -102,6 +103,8 @@ public interface ElkClientService {
     QueryResponse multiMatchQuery(String index, String documentType, String[] fields, String text, String analyzer, Integer pageIndex, Integer pageSize);
 
     List<DocumentScore> multiMatchQuery(String index, String documentType, String[] fields, String text, String analyzer, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags);
+
+    List<DocumentScore> luceneQuery(String index, String documentType, Map<String, Object> fields, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags);
 
     /**
      * 文档标识符查询

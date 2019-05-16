@@ -3,6 +3,7 @@ package com.tinysakura.smartsearchbox.endpoint;
 import com.tinysakura.smartsearchbox.common.Pagination;
 import com.tinysakura.smartsearchbox.common.PaginationResponseView;
 import com.tinysakura.smartsearchbox.common.ResponseView;
+import com.tinysakura.smartsearchbox.common.dto.DocumentSearchDto;
 import com.tinysakura.smartsearchbox.common.entity.DocumentScore;
 import com.tinysakura.smartsearchbox.config.prop.IndexProp;
 import com.tinysakura.smartsearchbox.config.prop.SearchPromptProp;
@@ -18,6 +19,7 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @Author: chenfeihao@corp.netease.com
@@ -82,31 +84,31 @@ public class SearchBox {
     /**
      * 索引文档查询
      * @param indexName
-     * @param documentType
-     * @param keyword
-     * @param index
-     * @param size
-     * @param fields
+     * @param documentSearchDto
      * @return
      */
-    @GetMapping("/search_box/{index}/search_document")
-    public PaginationResponseView searchDocument(@PathVariable("index") String indexName,
-                                                 @RequestParam("documentType") Integer documentType,
-                                                 @RequestParam("keyword") String keyword,
-                                                 @RequestParam("index") Integer index,
-                                                 @RequestParam("size") Integer size, String[] fields) {
-        String className = indexProp.getClasses()[documentType];
+    @PostMapping("/search_box/{indexName}/search_document")
+    public PaginationResponseView searchDocument(@PathVariable("indexName") String indexName,
+                                                 @RequestBody DocumentSearchDto documentSearchDto) {
+        String className = indexProp.getClasses()[documentSearchDto.getDocumentType()];
         Class clazz = null;
         try {
             clazz = Class.forName(className);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-        List<DocumentScore> documentList = elkClientService.multiMatchQuery(indexName, null, fields, keyword, indexProp.getDefaultAnalyzer(), index, size, clazz, indexProp.getHighlightPreTags(), indexProp.getHighlightPostTags());
+
+        Map<String, Object> map = new HashMap<>(documentSearchDto.getFields().length);
+
+        for (String field : documentSearchDto.getFields()) {
+            map.put(field, documentSearchDto.getKeyword());
+        }
+
+        List<DocumentScore> documentList = elkClientService.luceneQuery(indexName, null, map, documentSearchDto.getIndex(), documentSearchDto.getSize(), clazz, searchPromptProp.getPreTags(), searchPromptProp.getPostTags());
 
         // 更新用户搜索行为对应zset
-        zSetScoreIncr(keyword, indexName);
-        return wrap(index, size, documentList);
+        zSetScoreIncr(documentSearchDto.getKeyword(), indexName);
+        return wrap(documentSearchDto.getIndex(), documentSearchDto.getSize(), documentList);
     }
 
     /**
