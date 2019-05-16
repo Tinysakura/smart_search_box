@@ -67,7 +67,7 @@ public class SearchBox {
     }
 
     /**
-     * 使用webSocket与前端通信，根据用户输入的关键词进行搜索提示
+     * 与前端通信，根据用户输入的关键词进行搜索提示
      * @param indexName
      * @param keyword
      * @param index
@@ -75,7 +75,6 @@ public class SearchBox {
      * @return
      */
     @RequestMapping("/search_box/{index}/search_prompt")
-    @SendTo("/search_prompt/prompt")
     public PaginationResponseView searchPrompt(@PathVariable("index") String indexName,
                                                      @RequestParam("keyword") String keyword,
                                                      @RequestParam("index") Integer index,
