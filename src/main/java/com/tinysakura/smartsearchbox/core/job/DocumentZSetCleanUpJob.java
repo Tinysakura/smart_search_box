@@ -73,13 +73,7 @@ public class DocumentZSetCleanUpJob implements Runnable {
                         redisClientService.del(zSetKey);
                         String keyWord = StringUtil.extractKeywordFromDocumentZSetKey(zSetKey);
 
-                        Map<String, Object> fieldMap = new HashMap<>(fields.length);
-
-                        for (String field : fields) {
-                            fieldMap.put(field, keyWord);
-                        }
-
-                        QueryResponse queryResponse = elkClientService.luceneQuery(index, null, fieldMap, 0, new Long(zSetCapacity + zSetCacheCapacity).intValue());
+                        QueryResponse queryResponse = elkClientService.luceneQuery(index, null, fields, keyWord, 1, new Long(zSetCapacity + zSetCacheCapacity).intValue());
                         Hit[] hits = queryResponse.getHits().getHits();
 
                         for (Hit hit : hits) {

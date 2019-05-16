@@ -104,9 +104,9 @@ public interface ElkClientService {
 
     List<DocumentScore> multiMatchQuery(String index, String documentType, String[] fields, String text, String analyzer, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags);
 
-    List<DocumentScore> luceneQuery(String index, String documentType, Map<String, Object> fields, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags);
+    List<DocumentScore> luceneQuery(String index, String documentType, String[] fields, String query, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags);
 
-    QueryResponse luceneQuery(String index, String documentType, Map<String, Object> fields, Integer pageIndex, Integer pageSize);
+    QueryResponse luceneQuery(String index, String documentType, String[] fields, String query, Integer pageIndex, Integer pageSize);
 
     /**
      * 文档标识符查询

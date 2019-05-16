@@ -3,6 +3,7 @@ package com.tinysakura.smartsearchbox.adapter;
 import com.tinysakura.bean.index.Index;
 import com.tinysakura.bean.query.result.Hit;
 import com.tinysakura.bean.query.result.QueryResponse;
+import com.tinysakura.constant.QueryConstant;
 import com.tinysakura.core.query.QueryBody;
 import com.tinysakura.core.query.base.*;
 import com.tinysakura.core.query.highlight.HighLightQuery;
@@ -174,16 +175,11 @@ public class SmartElkClientAdapter implements ElkClientService {
     }
 
     @Override
-    public List<DocumentScore> luceneQuery(String index, String documentType, Map<String, Object> fields, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags) {
+    public List<DocumentScore> luceneQuery(String index, String documentType, String[] fields, String query, Integer pageIndex, Integer pageSize, Class clazz, String preTags, String postTags) {
         QueryBody.Builder queryBodyBuilder = new QueryBody.Builder();
         LuceneQuery.Builder luceneQueryBuilder = new LuceneQuery.Builder();
 
-        StringBuilder sb = new StringBuilder();
-        for (String field : fields.keySet()) {
-            sb.append(field).append(":").append(fields.get(field).toString());
-        }
-
-        LuceneQuery luceneQuery = luceneQueryBuilder.query(sb.toString()).build();
+        LuceneQuery luceneQuery = luceneQueryBuilder.query(query).fields(fields).defaultOperator(QueryConstant.Bool.OR).build();
         queryBodyBuilder.query(luceneQuery.getQuery()).from((pageIndex - 1) * pageSize).size(pageSize).build();
 
         if (preTags != null && postTags != null) {
@@ -197,16 +193,11 @@ public class SmartElkClientAdapter implements ElkClientService {
     }
 
     @Override
-    public QueryResponse luceneQuery(String index, String documentType, Map<String, Object> fields, Integer pageIndex, Integer pageSize) {
+    public QueryResponse luceneQuery(String index, String documentType, String[] fields, String query, Integer pageIndex, Integer pageSize) {
         QueryBody.Builder queryBodyBuilder = new QueryBody.Builder();
         LuceneQuery.Builder luceneQueryBuilder = new LuceneQuery.Builder();
 
-        StringBuilder sb = new StringBuilder();
-        for (String field : fields.keySet()) {
-            sb.append(field).append(":").append(fields.get(field).toString());
-        }
-
-        LuceneQuery luceneQuery = luceneQueryBuilder.query(sb.toString()).build();
+        LuceneQuery luceneQuery = luceneQueryBuilder.query(query).fields(fields).defaultOperator(QueryConstant.Bool.OR).build();
 
         queryBodyBuilder.query(luceneQuery.getQuery()).from((pageIndex - 1) * pageSize).size(pageSize).build();
         QueryBody queryBody = queryBodyBuilder.build();

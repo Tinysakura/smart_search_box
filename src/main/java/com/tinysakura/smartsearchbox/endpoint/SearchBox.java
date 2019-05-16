@@ -98,13 +98,7 @@ public class SearchBox {
             e.printStackTrace();
         }
 
-        Map<String, Object> map = new HashMap<>(documentSearchDto.getFields().length);
-
-        for (String field : documentSearchDto.getFields()) {
-            map.put(field, documentSearchDto.getKeyword());
-        }
-
-        List<DocumentScore> documentList = elkClientService.luceneQuery(indexName, null, map, documentSearchDto.getIndex(), documentSearchDto.getSize(), clazz, searchPromptProp.getPreTags(), searchPromptProp.getPostTags());
+        List<DocumentScore> documentList = elkClientService.luceneQuery(indexName, null, documentSearchDto.getFields(), documentSearchDto.getKeyword(), documentSearchDto.getIndex(), documentSearchDto.getSize(), clazz, searchPromptProp.getPreTags(), searchPromptProp.getPostTags());
 
         // 更新用户搜索行为对应zset
         zSetScoreIncr(documentSearchDto.getKeyword(), indexName);
