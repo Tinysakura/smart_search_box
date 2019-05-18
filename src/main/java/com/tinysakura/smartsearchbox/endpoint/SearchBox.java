@@ -179,11 +179,11 @@ public class SearchBox {
      * @param keyword
      */
     private void zSetScoreIncr(String keyword, String index) {
-        String behaviorZsetKey = StringUtil.behaviorZSetKey(index, keyword);
         String[] analyzer = analyzerService.analyzer(keyword);
 
         for (String str : analyzer) {
-            redisClientService.zincrby(behaviorZsetKey, 1d, str);
+            String behaviorZsetKey = StringUtil.behaviorZSetKey(index, str);
+            redisClientService.zincrby(behaviorZsetKey, 1d, keyword);
         }
     }
 }
