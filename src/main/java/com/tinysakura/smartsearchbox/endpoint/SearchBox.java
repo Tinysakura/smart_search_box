@@ -56,7 +56,7 @@ public class SearchBox {
      */
     @MessageMapping("/search_box/search_prompt")
     @SendTo("/search_prompt/prompt")
-    public PaginationResponseView searchPromptWithWs(@RequestParam("index") String indexName,
+    public PaginationResponseView searchPromptWithWs(@RequestParam("indexName") String indexName,
                                                  @RequestParam("keyword") String keyword,
                                                  @RequestParam("index") Integer index,
                                                  @RequestParam("size") Integer size) {
