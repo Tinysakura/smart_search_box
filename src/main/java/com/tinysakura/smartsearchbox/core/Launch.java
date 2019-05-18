@@ -353,4 +353,16 @@ public class Launch implements ApplicationContextAware {
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
     }
+
+    public void setAnalyzerService(AnalyzerService analyzerService) {
+        this.analyzerService = analyzerService;
+    }
+
+    public void setElkClientService(ElkClientService elkClientService) {
+        this.elkClientService = elkClientService;
+    }
+
+    public void setRedisClientService(RedisClientService redisClientService) {
+        this.redisClientService = redisClientService;
+    }
 }
