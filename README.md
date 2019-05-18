@@ -254,6 +254,7 @@ public @interface Index {
 
 **GET /searchBox/{indexName}/searchPrompt**
 搜索提示端点，根据用户在搜索框中输入的部分内容进行联想，接收以下参数
+
 |参数名|类型|含义|  
 |---|---|---|
 |indexName|string|在哪个索引上进行联想|
