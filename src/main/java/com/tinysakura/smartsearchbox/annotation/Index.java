@@ -15,12 +15,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Index {
     /**
-     * dao层bean在ioc容器中的bean name
-     * @return
-     */
-    public String beanName() default "";
-
-    /**
      * 指定在哪个索引上索引文档
      * @return
      */
