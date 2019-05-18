@@ -254,12 +254,13 @@ public @interface Index {
 
 **GET /searchBox/{indexName}/searchPrompt**
 搜索提示端点，根据用户在搜索框中输入的部分内容进行联想，接收以下参数
-参数名 | 类型 | 含义
---|--|--
-indexName|path variable|在哪个索引上进行联想
-keyword|string|关键词
-index|int|返回结果分页页数
-size|int|返回结果分页大小
+|参数名|类型|含义|  
+|---|---|---|
+|indexName|string|在哪个索引上进行联想|
+|keyword|string|关键词|
+|index|int|返回结果分页页数|
+|size|int|返回结果分页大小|
+
 ```shell
 curl http://localhost:8080/searchBox/mediiiia/searchPrompt?index=1&size=5&keyword=白
 
@@ -282,13 +283,12 @@ websocket订阅的端点，使用websocket获得搜索提示，对应的spring m
 @MessageMapping("/search_box/search_prompt")
 @SendTo("/search_prompt/prompt")
 ```
-接收如下参数
-参数名 | 类型 | 含义
---|--|--
-indexName|string|在哪个索引上进行联想
-keyword|string|关键词
-index|int|返回结果分页页数
-size|int|返回结果分页大小
+|参数名|类型|含义|  
+|---|---|---|
+|indexName|string|在哪个索引上进行联想|
+|keyword|string|关键词|
+|index|int|返回结果分页页数|
+|size|int|返回结果分页大小|
 
 
 **POST /search_box/{indexName}/search_document**
